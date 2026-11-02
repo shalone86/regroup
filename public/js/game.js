@@ -347,8 +347,9 @@ export class Game {
       this.ans[i] = dgs(c.sum, i, "fresh");
       this.paint();
       const intro = v === c.sum ? `Yes! ${c.sum} ${name(i)}!` : `Yes, ${c.digit} goes here!`;
-      await this.say(`${intro} That's too many for one lane. 10 ${name(i)} make 1 ${one(i + 1)}. Trade them, and the ${one(i + 1)} moves LEFT ⬅`);
-      await this.action(`🔁 Trade 10 ${name(i)} for 1 ${one(i + 1)}`, { tap: this.q(i, ".ta"), small: this.blocks ? `or tap the ${name(i)}` : "" });
+      await this.say(`${intro} That's too many for one lane. 10 ${name(i)} make 1 ${one(i + 1)}. Tap the ${name(i)} to trade 10 of them for 1 ${one(i + 1)}. It moves LEFT ⬅`);
+      // With blocks: tap the blocks. Without: tap anywhere in the lane (the number, the box…).
+      await this.tapOn(this.blocks ? [this.q(i, ".ta")] : [this.lane[i]], `Tap the ${name(i)}, in the ${PLACES[i].Name} lane!`);
       await this.tradeUp(i);
       await this.say(`${count(c.digit, i)} stay here, and 1 ${one(i + 1)} moved over to the ${name(i + 1)}!`, { wait: true });
     } else {

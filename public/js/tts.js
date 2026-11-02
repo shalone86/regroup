@@ -27,9 +27,15 @@ function pickVoice() {
     ?? voices.find((v) => /en[-_]US/i.test(v.lang)) ?? voices[0] ?? null;
 }
 
+// When the Cloudflare voice fails (for example the free daily allowance is used up), use the
+// device voice for a while instead of trying (and waiting for) the server before every sentence.
+const RETRY_SERVER_MS = 10 * 60 * 1000;
+let serverFailedAt = 0;
+
 async function useServer() {
   const src = settings().ttsSource;
   if (src === "browser") return false;
+  if (Date.now() - serverFailedAt < RETRY_SERVER_MS) return false;
   if (src === "server") return true;
   return !!(await health()).tts;
 }
@@ -102,6 +108,7 @@ export async function speak(text, { force = false } = {}) {
         if (id !== playId) return;
         return await playThrough(url, rate);
       } catch (e) {
+        if (!/play/i.test(String(e?.message))) serverFailedAt = Date.now();
         if (id !== playId) return;
         console.warn("Server voice failed, using the device voice", e);
       }
