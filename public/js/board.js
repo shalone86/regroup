@@ -146,6 +146,28 @@ export async function flyDigit(fromEl, toEl, html, cls = "", { arc = 50, dur = 9
   g.remove();
 }
 
+/** Pick something up: a chip that floats just above `fromEl` until flyHeld() moves it. */
+export function hold(fromEl, html, cls = "") {
+  const g = document.createElement("span");
+  g.className = `fly-digit held ${cls}`;
+  g.innerHTML = html;
+  const a = R(fromEl);
+  const r = centered({ left: a.left, top: a.top - 30, width: a.width, height: a.height }, 44, 44);
+  ghostAt(g, r);
+  g.dataset.rect = JSON.stringify(r);
+  pop(g, 1.4);
+  return g;
+}
+
+/** Fly a held chip to the middle of `toEl`, then drop it. */
+export async function flyHeld(g, toEl) {
+  if (!g) return;
+  const from = JSON.parse(g.dataset.rect);
+  g.classList.remove("held");
+  await move(g, from, centered(R(toEl), 44, 44), { dur: 900, arc: 50 });
+  g.remove();
+}
+
 // ───────────────────────── block animations ─────────────────────────
 
 /** Ghosts live outside the board, so give the overlay the board's block sizes. */

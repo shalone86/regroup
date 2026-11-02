@@ -161,39 +161,37 @@ body.in-game .topbar { display: none; }
   box-shadow: inset -1px 0 0 rgb(0 0 0 / .2), inset 1px 0 0 rgb(255 255 255 / .3);
 }
 .pc-2 {
-  width: calc(var(--u) * 10); height: calc(var(--u) * 10); border-radius: 2px;
+  width: var(--flat); height: var(--flat); border-radius: 2px;
   background:
-    repeating-linear-gradient(to right, transparent 0 calc(var(--u) - 1px), rgb(0 0 0 / .22) calc(var(--u) - 1px) var(--u)),
-    repeating-linear-gradient(to bottom, var(--c2) 0 calc(var(--u) - 1px), var(--c2-dark) calc(var(--u) - 1px) var(--u));
-  box-shadow: 0 1px 0 rgb(0 0 0 / .25);
+    repeating-linear-gradient(to right, transparent 0 calc(10% - 1px), rgb(0 0 0 / .2) calc(10% - 1px) 10%),
+    repeating-linear-gradient(to bottom, var(--c2) 0 calc(10% - 1px), var(--c2-dark) calc(10% - 1px) 10%);
+  box-shadow: inset 0 0 0 1px var(--c2-dark);
 }
 .pc-3 {
-  width: calc(var(--u) * 9); height: calc(var(--u) * 9); border-radius: 2px; margin: calc(var(--u) * 1) calc(var(--u) * 1) 0 0;
+  width: calc(var(--flat) - 4px); height: calc(var(--flat) - 4px); border-radius: 2px; margin: 4px 4px 0 0;
   background:
-    repeating-linear-gradient(to right, transparent 0 calc(var(--u) * .9 - 1px), rgb(0 0 0 / .22) calc(var(--u) * .9 - 1px) calc(var(--u) * .9)),
-    repeating-linear-gradient(to bottom, var(--c3) 0 calc(var(--u) * .9 - 1px), var(--c3-dark) calc(var(--u) * .9 - 1px) calc(var(--u) * .9));
-  box-shadow: 1px -1px 0 var(--c3-dark), 2px -2px 0 var(--c3-dark), 3px -3px 0 var(--c3-dark), 4px -4px 0 var(--c3-dark),
-    5px -5px 0 var(--c3-dark), 6px -6px 0 var(--c3-dark);
+    repeating-linear-gradient(to right, transparent 0 calc(10% - 1px), rgb(0 0 0 / .2) calc(10% - 1px) 10%),
+    repeating-linear-gradient(to bottom, var(--c3) 0 calc(10% - 1px), var(--c3-dark) calc(10% - 1px) 10%);
+  box-shadow: inset 0 0 0 1px var(--c3-dark), 1px -1px 0 var(--c3-dark), 2px -2px 0 var(--c3-dark), 3px -3px 0 var(--c3-dark), 4px -4px 0 var(--c3-dark);
 }
-.pc.mini { --u: 3px; --cube: 12px; }
+.pc.mini { --u: 3px; --cube: 12px; --flat: 20px; }
 .legend .pc-1.mini { --u: 2.2px; }
-.legend .pc-2.mini, .legend .pc-3.mini { --u: 2.2px; }
 .ghost { position: fixed; margin: 0 !important; transform-origin: 0 0; z-index: 60; pointer-events: none; }
 
 /* ── the board: one lane per place ── */
 .board {
-  --u: 13px; --cube: 15px;
+  --u: 13px; --cube: 15px; --flat: 22px; --rowof: 5;
   display: grid; grid-template-columns: 22px repeat(var(--lanes), minmax(0, 1fr)); column-gap: 6px; align-items: stretch;
   user-select: none; -webkit-user-select: none;
 }
 .board.places-2 { --lanes: 2; }
-.board.places-3 { --lanes: 3; --u: 8.5px; --cube: 12px; }
-.board.places-4 { --lanes: 4; --u: 6.4px; --cube: 10px; }
+.board.places-3 { --lanes: 3; --u: 8.5px; --cube: 12px; --flat: 15px; }
+.board.places-4 { --lanes: 4; --u: 6.4px; --cube: 10px; --flat: 17px; --rowof: 3; }
 .board.mat { grid-template-columns: repeat(var(--lanes), minmax(0, 1fr)); }
 @media (min-width: 620px) {
   .board { --u: 16px; --cube: 20px; }
-  .board.places-3 { --u: 11px; --cube: 16px; }
-  .board.places-4 { --u: 8.6px; --cube: 13px; }
+  .board.places-3 { --u: 11px; --cube: 16px; --flat: 26px; }
+  .board.places-4 { --u: 8.6px; --cube: 13px; --flat: 24px; --rowof: 5; }
 }
 .lane { display: flex; flex-direction: column; border-radius: 18px; padding: 0 0 10px; min-width: 0; transition: box-shadow .2s, opacity .2s; }
 .lane.p0 { background: var(--c0-soft); --lc: var(--c0); }
@@ -241,12 +239,20 @@ body.in-game .topbar { display: none; }
 .tray.p0 .pc:nth-child(10n+1):not(:first-child), .tray.p0 .pc:nth-child(10n+2):not(:nth-child(2)),
 .tray.p0 .pc:nth-child(10n+3):not(:nth-child(3)), .tray.p0 .pc:nth-child(10n+4):not(:nth-child(4)),
 .tray.p0 .pc:nth-child(10n+5):not(:nth-child(5)) { margin-top: 6px; }
-.tray.p2, .tray.p3 { flex-direction: column; flex-wrap: nowrap; align-items: center; }
-.tray.p2 .pc-2 + .pc-2 { margin-top: calc(var(--u) * -10 + 8px); }
-.tray.p3 .pc-3 + .pc-3 { margin-top: calc(var(--u) * -9 + 8px); }
+/* Hundreds and thousands: small, side by side in rows (of 5 when there's room), so they can be counted. */
+.tray.p2, .tray.p3 { display: grid; grid-template-columns: repeat(var(--rowof), var(--flat)); justify-content: center; align-content: start; gap: 4px; }
+.tray.p3 { gap: 2px; }
 .tray.too-many { border-style: solid; border-color: var(--lc); animation: wiggle 1.2s ease-in-out infinite; }
 @keyframes wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -1deg; } 75% { rotate: 1deg; } }
 .tray .incoming { visibility: hidden; }
+.tray .lifted { transform: translateY(-10px); box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--lc), 0 10px 14px rgb(0 0 0 / .25); transition: transform .25s; }
+.tap-here { cursor: pointer; animation: tapme 1.1s ease-in-out infinite; border-radius: 12px; }
+.cell.tap-here { background: color-mix(in srgb, var(--lc) 22%, transparent); }
+.lane.tap-here { animation: tapLane 1.1s ease-in-out infinite; }
+@keyframes tapLane { 50% { box-shadow: 0 0 0 6px var(--lc), 0 0 22px var(--lc); } }
+.tap-here.pressed { transform: scale(.96); }
+.fly-digit.held { animation: float 1.2s ease-in-out infinite; }
+@keyframes float { 50% { translate: 0 -6px; } }
 .counts .tray::after, .mat .tray::after {
   content: attr(data-count); position: absolute; right: 4px; bottom: 2px; font: 800 0.95rem var(--font-display); color: var(--lc);
 }
@@ -360,5 +366,5 @@ body.in-game .topbar { display: none; }
   .places-4 .cell { font-size: 1.7rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .title span, .mascot, .btn.pulse, .tray.too-many, .tappable, .tappable-each .pc, .arrow-path { animation: none !important; }
+  .title span, .mascot, .btn.pulse, .tray.too-many, .tappable, .tappable-each .pc, .arrow-path, .tap-here, .fly-digit.held { animation: none !important; }
 }

@@ -325,9 +325,7 @@ export class Game {
     const c = this.plan.cols[i];
     const terms = [c.carryIn ? 1 : null, c.top, i < this.lenB ? c.bot : null].filter((x) => x !== null);
     if (terms.length === 1) {
-      this.ans[i] = dgs(c.digit, i, "fresh");
-      this.paint();
-      await this.say(`No more ${name(i)} to add. Bring down the ${c.top}.`, { wait: true });
+      await this.bringDown(i, c.top, `No more ${name(i)} to add, so the ${c.top} stays the same. Bring it down! Tap the ${c.top}.`);
       return;
     }
     if (this.blocks && this.tray.b[i] > 0) {
@@ -415,9 +413,7 @@ export class Game {
         await this.say(`No ${name(i)} left. We're done with this lane!`, { wait: true });
         return;
       }
-      this.ans[i] = dg(work, i, "fresh");
-      this.paint();
-      await this.say(`No ${name(i)} to take away. Bring down the ${work}.`, { wait: true });
+      await this.bringDown(i, work, `No ${name(i)} to take away, so the ${work} stays the same. Bring it down! Tap the ${work}.`);
       return;
     }
     const enough = work >= bot;
@@ -431,15 +427,9 @@ export class Game {
       const chain = c.chain;
       const giver = chain[0];
       if (chain.length > 1) {
-        await this.say(`Oh no, there are no ${name(i + 1)} to trade! Let's open up 1 ${one(giver)} first. It moves RIGHT ➡`);
-      } else {
-        await this.say(`Trade 1 ${one(i + 1)} for 10 ${name(i)}. The ${one(i + 1)} moves RIGHT ➡ and breaks into 10 ${name(i)}.`);
+        await this.say(`Oh no, there are no ${name(i + 1)} to trade! We have to go over to the ${name(giver)} first.`, { wait: true });
       }
-      await this.action(`🔁 Trade 1 ${one(giver)} for 10 ${name(giver - 1)}`, { tap: this.q(giver, ".ta"), small: this.blocks ? `or tap the ${name(giver)}` : "" });
-      for (const k of chain) {
-        await this.tradeDown(k);
-        if (k - 1 > i) await this.say(`Now we have 10 ${name(k - 1)}. Trade 1 ${one(k - 1)} for 10 ${name(k - 2)}!`, { wait: true });
-      }
+      for (const k of chain) await this.tradeDown(k);
       await this.say(`Now we have ${count(this.work[i], i)}!`, { wait: true });
     }
     this.note[i] = `take away <b class="c${i}">${bot}</b>`;
@@ -456,15 +446,39 @@ export class Game {
     else if (!this.auto) await this.wait(500);
   }
 
-  /** Lane k gives 1 to lane k−1, which gets 10: blocks fly right and break; digits change. */
+  /** The cell that shows lane k's current top number (the small top row once it has changed). */
+  srcCell(k) { return this.carry[k] ? this.q(k, ".carry") : this.q(k, ".top"); }
+
+  /**
+   * Lane k gives 1 to lane k−1, which gets 10. The child does both halves:
+   * tap lane k's number to take 1 away (4 → 3), then tap lane k−1 to move it over (2 → 12).
+   */
   async tradeDown(k) {
     const i = k - 1;
-    B.arrow(this.lane[k], this.lane[i], `1 ${one(k)} = 10 ${name(i)}`, i);
-    const fromCell = this.carry[k] ? this.q(k, ".carry") : this.q(k, ".top");
+    const v = this.work[k];
+    await this.say(`Tap the ${v} in the ${name(k)} to take away 1 ${one(k)}.`);
+    await this.tapOn([this.srcCell(k), this.q(k, ".ta")], `We need 1 ${one(k)}. Tap the ${v} in the ${PLACES[k].Name} lane!`);
+
+    // 1) take one from lane k: cross out, write v − 1, pick up "1 ten" (and lift a rod)
+    const fromCell = this.srcCell(k);
     this.work[k] -= 1;
     this.struck[k] = true;
-    this.carry[k] = dg(this.work[k], k, "fresh");
     this.paint();
+    const held = B.hold(fromCell, `${dg(1, k)}<small class="c${k}">${one(k)}</small>`, "chip");
+    await this.wait(250);
+    this.carry[k] = dg(this.work[k], k, "fresh");
+    this.q(k, ".carry").innerHTML = this.carry[k];
+    B.pop(this.q(k, ".carry .d"), 1.5);
+    sfx.pop();
+    const rod = [...this.q(k, ".ta").children].at(-1);
+    rod?.classList.add("lifted");
+
+    await this.say(`${v} − 1 = ${v - 1}. Now tap the ${name(i)} to move the ${one(k)} over ➡`);
+    await this.tapOn([this.lane[i]], `Move it to the ${PLACES[i].Name} lane, the one on the right ➡`, [this.lane[k]]);
+
+    // 2) move it right: the chip flies over, the block breaks into 10, the number grows by 10
+    const before = this.work[i];
+    B.arrow(this.lane[k], this.lane[i], `1 ${one(k)} = 10 ${name(i)}`, i);
     const blocks = this.blocks
       ? B.breakApart(this.q(k, ".ta"), this.q(i, ".ta"), i, () => {
         this.tray.a[k] -= 1;
@@ -475,9 +489,7 @@ export class Game {
       })
       : (this.tray.a[k] -= 1, this.tray.a[i] += 10, Promise.resolve());
     const numbers = (async () => {
-      B.pop(this.q(k, ".carry .d"), 1.4);
-      await this.wait(this.blocks ? 300 : 100);
-      await B.flyDigit(fromCell, this.q(i, ".carry"), `${dg(1, k)}<small class="c${k}">${one(k)}</small>`, "chip", { arc: 60, dur: 1000 });
+      await B.flyHeld(held, this.q(i, ".carry"));
       this.work[i] += 10;
       this.struck[i] = true;
       this.carry[i] = [...String(this.work[i])].map((ch) => dg(ch, i, "fresh")).join("");
@@ -487,6 +499,48 @@ export class Game {
     })();
     await Promise.all([blocks, numbers]);
     this.paint();
+    await this.say(`1 ${one(k)} is 10 ${name(i)}. ${before} + 10 = ${this.work[i]} ${name(i)}!`, { wait: true });
+  }
+
+  /** Copy a number that doesn't change straight down into the answer, by tapping it. */
+  async bringDown(i, value, msg) {
+    const src = this.srcCell(i);
+    await this.say(msg);
+    await this.tapOn([src, this.q(i, ".ans")], `Tap the ${value} at the top of the ${PLACES[i].Name} lane.`);
+    sfx.whoosh();
+    await B.flyDigit(src, this.q(i, ".ans"), dg(value, i), "", { arc: 0, dur: 650 });
+    this.ans[i] = dg(value, i, "fresh");
+    this.paint();
+    B.pop(this.q(i, ".ans"), 1.4);
+    sfx.right();
+    await this.say(`${value} ${value === 1 ? one(i) : name(i)}. Same as before!`, { wait: true });
+  }
+
+  /**
+   * Wait for a tap on one of `targets`. Taps elsewhere on the board get a gentle hint
+   * (`wrongMsg`), except taps inside `ignore`. In a lesson, the game taps by itself.
+   */
+  tapOn(targets, wrongMsg = "", ignore = []) {
+    targets = targets.filter(Boolean);
+    targets.forEach((t) => t.classList.add("tap-here"));
+    this.dock(`<p class="hint">👆 Tap on the board</p>`);
+    return this.input((done) => {
+      const cleanup = () => {
+        this.boardEl.removeEventListener("click", onClick);
+        targets.forEach((t) => t.classList.remove("tap-here"));
+        this.dock("");
+      };
+      const onClick = (e) => {
+        if (targets.some((t) => t.contains(e.target))) { cleanup(); sfx.tap(); done(); return; }
+        if (ignore.some((t) => t.contains(e.target))) return;
+        if (wrongMsg && e.target.closest(".lane")) { sfx.oops(); this.say(wrongMsg).catch(() => {}); }
+      };
+      this.boardEl.addEventListener("click", onClick);
+      if (this.auto) {
+        this.wait(1300).then(() => { targets[0].classList.add("pressed"); return this.wait(300); })
+          .then(() => { targets[0].classList.remove("pressed"); cleanup(); sfx.tap(); done(); }, () => {});
+      }
+    });
   }
 
   // ───────────── the end ─────────────
