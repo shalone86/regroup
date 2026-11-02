@@ -1,0 +1,15 @@
+{
+  "id": "./",
+  "name": "Regroup! Trade tens and ones",
+  "short_name": "Regroup!",
+  "description": "A regrouping game for first and second graders, with blocks and numbers that move left and right.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fffaf0",
+  "theme_color": "#ff8a00",
+  "categories": ["education", "kids"],
+  "lang": "en-US",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
