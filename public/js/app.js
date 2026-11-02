@@ -43,7 +43,7 @@ const routes = [
 ];
 
 function route() {
-  cleanup?.();
+  try { cleanup?.(); } catch (e) { console.warn(e); }
   cleanup = null;
   stop();
   B.clearFx();
@@ -54,7 +54,9 @@ function route() {
     const m = path.match(re);
     if (m) {
       document.querySelectorAll("[data-nav]").forEach((a) => a.classList.toggle("active", a.dataset.nav === (path.split("/")[0] || "home")));
-      cleanup = fn(...m.slice(1)) ?? null;
+      // Only keep real cleanup functions (an async view returns a Promise, which isn't one).
+      const out = fn(...m.slice(1));
+      cleanup = typeof out === "function" ? out : null;
       window.scrollTo(0, 0);
       return;
     }
