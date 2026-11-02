@@ -284,33 +284,49 @@ export class Game {
   }
 
   /** Tap n pieces in lane i to take them away. */
+  /**
+   * Tap n pieces in lane i to take them away. Little fingers don't have to hit a tiny cube:
+   * tapping anywhere in the lane takes one away (the tapped piece, or the last one), and the
+   * pieces in that lane are drawn bigger while it's happening.
+   */
   takeAway(i, n) {
     const tray = this.q(i, ".ta");
+    const lane = this.lane[i];
     let left = n;
     const label = () => `Take away ${count(n, i)}. Tap ${left === n ? n : `${left} more`}!`;
     this.els.bubble.querySelector(".say").innerHTML = label();
     speak(spoken(label()));
-    this.dock(`<button class="btn small ghosty" data-all>✋ Take them away for me</button>`);
-    tray.classList.add("tappable-each");
+    this.dock(`<p class="take-left" aria-live="polite"><b>${left}</b> to take away</p><button class="btn small ghosty" data-all>✋ Take them away for me</button>`);
+    tray.classList.add("tappable-each", "taking");
+    lane.classList.add("tap-lane");
     return this.input((done) => {
       let busy = false;
       const removeOne = async (el) => {
-        if (busy || left <= 0 || !el?.classList.contains("pc")) return;
+        if (busy || left <= 0) return;
+        el = el?.classList.contains("pc") && !el.classList.contains("incoming") ? el : [...tray.children].at(-1);
+        if (!el) return;
         busy = true;
         left--;
+        const counter = this.els.dock.querySelector(".take-left b");
+        if (counter) { counter.textContent = left; B.pop(counter, 1.5); }
         await B.vanish(el, n - left);
         this.tray.a[i]--;
         this.paint();
         busy = false;
         if (left > 0) this.els.bubble.querySelector(".say").innerHTML = label();
-        else { tray.classList.remove("tappable-each"); tray.onclick = null; this.dock(""); done(); }
+        else {
+          tray.classList.remove("tappable-each", "taking");
+          lane.classList.remove("tap-lane");
+          lane.onclick = null;
+          this.dock("");
+          done();
+        }
       };
-      tray.onclick = (e) => removeOne(e.target.closest(".pc"));
+      lane.onclick = (e) => removeOne(e.target.closest(".pc"));
       const all = async () => {
-        this.dock("");
+        this.els.dock.querySelector("[data-all]")?.remove();
         while (left > 0 && !this.dead) {
-          const pcs = [...this.q(i, ".ta").children];
-          await removeOne(pcs.at(-1));
+          await removeOne(null);
           await B.sleep(120);
         }
       };

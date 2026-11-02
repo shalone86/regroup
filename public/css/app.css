@@ -418,3 +418,19 @@ body.in-game .topbar { display: none; }
 .choice-card.wrong { opacity: .4; border-style: dashed; }
 .choice-card:disabled { cursor: default; }
 .q-explain { text-align: center; font: 700 1.1rem/1.4 var(--font-display); min-height: 1.4em; margin: 14px 0 0; }
+
+/* Taking away: bigger pieces, and the whole lane is the tap target. */
+.lane.tap-lane { cursor: pointer; }
+.places-2 .tray.taking { --cube: 24px; --u: 15px; }
+.places-3 .tray.taking { --cube: 19px; --u: 10px; --flat: 22px; }
+.places-4 .tray.taking { --cube: 15px; --u: 8px; --flat: 21px; }
+@media (min-width: 620px) {
+  .places-2 .tray.taking { --cube: 30px; --u: 18px; }
+  .places-3 .tray.taking { --cube: 26px; --u: 13px; --flat: 32px; }
+  .places-4 .tray.taking { --cube: 22px; --u: 11px; --flat: 30px; }
+}
+.tray.p0.taking { grid-template-columns: repeat(auto-fill, var(--cube)); width: 100%; }
+.tray.p2.taking, .tray.p3.taking { grid-template-columns: repeat(auto-fill, var(--flat)); }
+.dock .take-left { margin: 0; font: 800 1.2rem var(--font-display); }
+.dock .take-left b { display: inline-block; font-size: 1.6rem; color: var(--accent-strong); min-width: 1.2em; text-align: center; }
+.dock { will-change: transform; }

@@ -11,6 +11,7 @@ import { health } from "./api.js";
 import { sfx } from "./sound.js";
 import * as S from "./store.js";
 import { viewSense } from "./senseview.js";
+import { keepDockVisible } from "./dock.js";
 import { SENSE_LEVELS } from "./sense.js";
 
 const app = document.getElementById("app");
@@ -346,4 +347,5 @@ document.addEventListener("click", (e) => {
 // ───────────────────────── start ─────────────────────────
 
 route();
+keepDockVisible();
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
