@@ -83,3 +83,51 @@ test("stars", () => {
   assert.equal(starsFor(3), 2);
   assert.equal(starsFor(9), 1);
 });
+
+import { words, wordParts, expanded, makeRound, makeQuestion, TYPES, SENSE_LEVELS, lookalikes, explain } from "../public/js/sense.js";
+import { seeded } from "../public/js/math.js";
+
+test("number words", () => {
+  assert.equal(words(47), "forty-seven");
+  assert.equal(words(14), "fourteen");
+  assert.equal(words(30), "thirty");
+  assert.equal(words(305), "three hundred five");
+  assert.equal(words(3471), "three thousand four hundred seventy-one");
+  assert.equal(words(9012), "nine thousand twelve");
+  assert.deepEqual(wordParts(347).map((p) => p.place), [2, 1, 0]);
+});
+
+test("expanded form leaves out zeros", () => {
+  assert.equal(expanded(347), "300 + 40 + 7");
+  assert.equal(expanded(3047), "3000 + 40 + 7");
+  assert.equal(expanded(50), "50");
+});
+
+test("every number-sense question has its answer among unique choices", () => {
+  for (const L of SENSE_LEVELS) {
+    for (let seed = 1; seed <= 80; seed++) {
+      const round = makeRound(L.places, seed);
+      assert.equal(new Set(round.map((q) => q.type)).size, round.length, "each type once");
+      assert.equal(round[0].type, "blocks", "starts with blocks");
+      for (const q of round) {
+        const vals = q.choices.map((c) => c.value);
+        assert.ok(vals.includes(q.answer), `${q.type} ${q.n}: answer missing`);
+        assert.equal(new Set(vals).size, vals.length, `${q.type} ${q.n}: duplicate choices`);
+        assert.ok(vals.length >= 2, `${q.type} ${q.n}: too few choices`);
+        assert.equal(String(q.n).length, L.places, `${q.type} ${q.n}: wrong size`);
+        assert.ok(explain(q).length > 5, `${q.type}: explanation`);
+        if (q.type === "toExpanded") assert.equal(new Set(vals.map(expanded)).size, vals.length);
+        if (q.type === "toWords" || q.type === "fromWords") assert.equal(new Set(vals.map(words)).size, vals.length);
+      }
+    }
+  }
+});
+
+test("look-alike numbers fit the places", () => {
+  const rand = seeded(5);
+  for (let k = 0; k < 200; k++) {
+    for (const t of TYPES) makeQuestion(3, t, rand);
+  }
+  assert.ok(lookalikes(305, 3).includes(35), "dropping the zero is a classic mistake");
+  assert.ok(lookalikes(47, 2).includes(74));
+});

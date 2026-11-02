@@ -10,6 +10,8 @@ import { speak, stop, browserVoices } from "./tts.js";
 import { health } from "./api.js";
 import { sfx } from "./sound.js";
 import * as S from "./store.js";
+import { viewSense } from "./senseview.js";
+import { SENSE_LEVELS } from "./sense.js";
 
 const app = document.getElementById("app");
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -35,6 +37,8 @@ const routes = [
   [/^play\/([\w-]+)$/, viewPlay],
   [/^watch\/([\w-]+)$/, viewWatch],
   [/^mat(?:\/(\d))?$/, (n) => viewMat(app, Number(n ?? 2))],
+  [/^numbers$/, viewNumbers],
+  [/^sense\/([\w-]+)$/, (id) => viewSense(app, id, { finish: finishSense })],
   [/^grownups$/, viewGrownups],
 ];
 
@@ -94,6 +98,8 @@ function viewHome() {
         </div>
       </section>`).join("")}
 
+    ${senseSection()}
+
     <a class="mat-card" href="#/mat/2">
       <span class="mat-icon" aria-hidden="true"><span class="pc pc-1 mini"></span><span class="pc pc-0 mini"></span><span class="pc pc-0 mini"></span></span>
       <span><b>Play Mat</b><br><span class="muted small">Build numbers with blocks. Bundle and break them yourself.</span></span>
@@ -103,6 +109,43 @@ function viewHome() {
       <h2>My stickers <small>${S.solved()} problems solved</small></h2>
       ${stickers.length ? `<div class="stickers">${stickers.map((s) => `<span>${s}</span>`).join("")}</div>` : `<p class="muted small">Finish a level to get your first sticker!</p>`}
     </section>`;
+}
+
+// ───────────────────────── number sense ─────────────────────────
+
+function senseSection() {
+  return `
+    <section class="world sense-home">
+      <div class="world-head">
+        <span class="world-emoji" aria-hidden="true">🔢</span>
+        <div><h2>Number Sense</h2><p class="muted small">Numbers, words, expanded form, blocks and places. What number is in the tens place?</p></div>
+      </div>
+      <div class="stage-grid">
+        ${SENSE_LEVELS.map((L) => {
+          const pr = S.stageProgress(L.id);
+          return `<div class="stage-card${pr.done ? " done" : ""}">
+            <a class="stage-main" href="#/sense/${L.id}"><span class="stage-emoji">${L.emoji}</span><span>${placeChips(L.places)}</span><b>${L.title}</b>${starsHtml(pr.stars)}</a>
+          </div>`;
+        }).join("")}
+      </div>
+      <p class="sense-sample small muted"><b class="c2">300</b> + <b class="c1">40</b> + <b class="c0">7</b> = <b class="c2">3</b><b class="c1">4</b><b class="c0">7</b> = <b class="c2">three hundred</b> <b class="c1">forty</b><b class="c0">-seven</b></p>
+    </section>`;
+}
+
+function viewNumbers() {
+  app.innerHTML = `<h1>Number Sense</h1>
+    <p class="muted">8 questions a round: read the blocks, match standard form, expanded form and number words (both ways), and find what digit is in each place and how much it's worth.</p>
+    ${senseSection()}`;
+}
+
+function finishSense(level, mistakes, next) {
+  showFinish({
+    id: level.id, stars: starsFor(Math.max(0, mistakes - 1)), mistakes,
+    title: pick(["Number star!", "You know your numbers!", "Super number sense!", "Wow!"]),
+    done: `${level.title}: 8 questions done.`,
+    again: `#/sense/${level.id}`,
+    next: next ? { href: `#/sense/${next.id}`, label: `Next: ${next.emoji} ${next.title} ▶` } : null,
+  });
 }
 
 // ───────────────────────── play a stage ─────────────────────────
@@ -139,12 +182,13 @@ function wireToggles(shell, getGame) {
     blocks = !blocks;
     shell.blocksBtn.setAttribute("aria-pressed", blocks);
     getGame()?.setBlocks(blocks);
-    sfx.tap();
+    sfx.toggle();
   };
   shell.voiceBtn.onclick = () => {
     const on = !S.settings().readAloud;
     S.setSetting("readAloud", on);
     shell.voiceBtn.setAttribute("aria-pressed", on);
+    sfx.toggle();
     if (!on) stop();
   };
   shell.els.bubble.querySelector(".replay").onclick = () => {
@@ -186,7 +230,7 @@ function viewPlay(id) {
 function nextButton(dock, label) {
   dock.innerHTML = `<button class="btn big primary pulse" data-next>${label}</button>`;
   return new Promise((resolve) => {
-    const go = () => { document.removeEventListener("keydown", onKey); sfx.tap(); resolve(); };
+    const go = () => { document.removeEventListener("keydown", onKey); resolve(); };
     const onKey = (e) => { if (e.key === "Enter") go(); };
     dock.querySelector("[data-next]").onclick = go;
     document.addEventListener("keydown", onKey);
@@ -194,22 +238,30 @@ function nextButton(dock, label) {
 }
 
 function finishStage(stage, mistakes) {
+  const next = STAGES[STAGES.indexOf(stage) + 1];
+  showFinish({
+    id: stage.id, stars: starsFor(mistakes), mistakes,
+    title: pick(["Amazing trading!", "You did it!", "Super star!", "Regroup champion!"]),
+    done: `${PROBLEMS_PER_STAGE} problems done.`,
+    again: `#/play/${stage.id}`,
+    next: next ? { href: `#/play/${next.id}`, label: `Next: ${OPS[next.op].emoji} ${OPS[next.op].title}${next.world !== stage.world ? ` · ${WORLDS[next.world - 1].emoji}` : ""} ▶` } : null,
+  });
+}
+
+function showFinish({ id, stars, mistakes, title, done, again, next }) {
   document.body.classList.remove("in-game");
-  const stars = starsFor(mistakes);
-  const sticker = S.finishStage(stage.id, stars, pick(STICKERS));
-  const idx = STAGES.indexOf(stage);
-  const next = STAGES[idx + 1];
-  sfx.win();
+  const sticker = S.finishStage(id, stars, pick(STICKERS));
+  sfx.fanfare();
   B.confetti(90);
   app.innerHTML = `
     <section class="finish">
       <div class="big-stars">${starsHtml(stars)}</div>
-      <h1>${pick(["Amazing trading!", "You did it!", "Super star!", "Regroup champion!"])}</h1>
+      <h1>${title}</h1>
       ${sticker ? `<p class="new-sticker"><span>${sticker}</span><br>New sticker!</p>` : ""}
-      <p class="muted">${mistakes === 0 ? "No mistakes at all. Wow!" : `${PROBLEMS_PER_STAGE} problems done.`}</p>
+      <p class="muted">${mistakes === 0 ? "No mistakes at all. Wow!" : done}</p>
       <div class="row center">
-        <a class="btn big" href="#/play/${stage.id}" data-again>🔁 Play again</a>
-        ${next ? `<a class="btn big primary" href="#/play/${next.id}">Next: ${OPS[next.op].emoji} ${OPS[next.op].title}${next.world !== stage.world ? ` · ${WORLDS[next.world - 1].emoji}` : ""} ▶</a>` : `<a class="btn big primary" href="#/">🏠 Home</a>`}
+        <a class="btn big" href="${again}" data-again>🔁 Play again</a>
+        ${next ? `<a class="btn big primary" href="${next.href}">${next.label}</a>` : `<a class="btn big primary" href="#/">🏠 Home</a>`}
       </div>
     </section>`;
   speak(sticker ? "You did it! You got a new sticker!" : "You did it!");
@@ -279,6 +331,15 @@ async function viewGrownups() {
   const st = app.querySelector("[data-voice-status]");
   if (st) st.textContent = h.tts ? "Cloudflare voice is available." : `Using this device's voice${browserVoices().length ? "" : " (if it has one)"}.`;
 }
+
+// ───────────────────────── sounds for every press ─────────────────────────
+// Buttons that make their own sound (number keys, answer choices, blocks, toggles) are skipped.
+const OWN_SOUND = ".key, .choice, .choice-card, [data-add], [data-sub], [data-up], [data-down], [data-blocks], [data-voice], .toggle";
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("button, a");
+  if (!el || el.matches(OWN_SOUND) || el.disabled) return;
+  sfx.click();
+}, true);
 
 // ───────────────────────── start ─────────────────────────
 

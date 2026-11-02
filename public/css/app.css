@@ -368,3 +368,53 @@ body.in-game .topbar { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .title span, .mascot, .btn.pulse, .tray.too-many, .tappable, .tappable-each .pc, .arrow-path, .tap-here, .fly-digit.held { animation: none !important; }
 }
+
+/* ── number sense ── */
+.sense-sample { text-align: center; margin: 12px 0 0; font-size: 0.95rem; }
+.sense-home .stage-main span:not(.stage-emoji):not(.stars) { font-size: 0.7rem; }
+.q-card {
+  position: relative; display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 130px; padding: 18px 14px; margin-bottom: 14px; border-radius: var(--radius);
+  background: var(--surface); border: 3px solid var(--border); box-shadow: var(--shadow);
+}
+.q-card.show-blocks { padding: 10px; }
+.q-card .board { width: 100%; }
+.board.noside { grid-template-columns: repeat(var(--lanes), minmax(0, 1fr)); }
+.board.noside .tray { margin: 8px 6px 0; }
+.q-card .hear { position: absolute; right: 8px; bottom: 8px; width: 38px; height: 38px; font-size: 1rem; }
+.num-big { font: 800 clamp(3rem, 16vw, 4.6rem)/1 var(--font-display); letter-spacing: 0.06em; display: inline-flex; }
+.nd { display: inline-block; position: relative; transition: color .4s; }
+.nd.plain { color: var(--text); }
+.nd.c0 { color: var(--c0-ink); } .nd.c1 { color: var(--c1-ink); } .nd.c2 { color: var(--c2-ink); } .nd.c3 { color: var(--c3-ink); }
+.nd.marked::after { content: ""; position: absolute; left: -2px; right: -2px; bottom: -8px; height: 6px; border-radius: 3px; background: var(--accent); }
+.nd.lit { animation: hop .6s ease-out; }
+.nd.lit::before {
+  content: attr(data-place); position: absolute; left: 50%; top: 100%; transform: translate(-50%, 10px);
+  font: 800 0.75rem var(--font-body); letter-spacing: 0;
+}
+.nd.lit::before { font-size: 1rem; }
+.nd.lit[data-place="0"]::before { content: "O"; } .nd.lit[data-place="1"]::before { content: "T"; }
+.nd.lit[data-place="2"]::before { content: "H"; } .nd.lit[data-place="3"]::before { content: "Th"; }
+.q-card .nd.lit { margin-bottom: 18px; }
+.exp, .wrd { font: 800 clamp(1.5rem, 6.5vw, 2.3rem)/1.3 var(--font-display); }
+.exp i { font-style: normal; color: var(--muted); }
+.plc { display: inline-flex; align-items: center; gap: 8px; font: 800 1.3rem var(--font-display); }
+.plc .chipmini { min-width: 34px; height: 34px; font-size: 1rem; border-radius: 10px; }
+.q-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.q-choices.kind-words, .q-choices.kind-expanded { grid-template-columns: 1fr; }
+.q-choices.kind-place.n4, .q-choices.kind-place.n3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.q-choices.kind-digit.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.q-choices.kind-digit.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.q-choices.kind-digit.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.choice-card {
+  min-height: 72px; padding: 10px 12px; border-radius: 18px; cursor: pointer; touch-action: manipulation;
+  background: var(--surface); border: 3px solid var(--border); box-shadow: var(--shadow); color: var(--text);
+  display: flex; align-items: center; justify-content: center; text-align: center; transition: transform .08s, background .2s;
+}
+.choice-card:active { transform: translateY(4px); box-shadow: none; }
+.choice-card .num-big { font-size: clamp(2rem, 9vw, 2.8rem); }
+.choice-card .exp, .choice-card .wrd { font-size: clamp(1.15rem, 5vw, 1.6rem); }
+.choice-card.right { background: var(--good-soft); border-color: var(--good); }
+.choice-card.wrong { opacity: .4; border-style: dashed; }
+.choice-card:disabled { cursor: default; }
+.q-explain { text-align: center; font: 700 1.1rem/1.4 var(--font-display); min-height: 1.4em; margin: 14px 0 0; }

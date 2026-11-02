@@ -86,7 +86,7 @@ export function viewMat(app, places = 2) {
   board.addEventListener("click", (e) => {
     const t = e.target.closest("button");
     if (!t) return;
-    if (t.dataset.add) guard(async () => { counts[+t.dataset.add]++; sfx.pop(); paint(); B.pop(tray(+t.dataset.add).lastElementChild, 1.4); });
+    if (t.dataset.add) guard(async () => { counts[+t.dataset.add]++; sfx.add(counts[+t.dataset.add]); paint(); B.pop(tray(+t.dataset.add).lastElementChild, 1.4); });
     if (t.dataset.sub) guard(async () => {
       const i = +t.dataset.sub;
       const last = tray(i).lastElementChild;

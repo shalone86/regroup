@@ -11,6 +11,8 @@ A regrouping game for **1st and 2nd graders**. Kids add and take away with regro
 - **Easy to start:** one big ▶ Play button. Every step is read aloud (🔊) for kids who are still learning to read. Mistakes are gentle: after a hint and a second try, the game shows the answer and moves on.
 - **Levels:** 🐸 Tens & Ones → 🦊 Hundreds, Tens & Ones → 🐳 Thousands. Each level has Add, Take away and Mix it up (5 problems). Problems start with one trade and a 1-digit number, then build up to several trades.
 - **🎬 Watch how:** the game plays a worked example by itself, slowly, with narration.
+- **🔢 Number Sense:** 8 multiple-choice questions a round, at each level (tens & ones, hundreds, thousands): what number do the blocks show, standard form ↔ expanded form (300 + 40 + 7), number ↔ words (three hundred forty-seven), *what digit is in the tens place?*, *what place is the 4 in?*, and *how much is the 4 worth?* Wrong answers are look-alikes (digits swapped, a zero dropped). Words and expanded parts are colored by place too; "which place" questions start plain and light up after.
+- **Sounds for everything:** each number key plays its own note, and choosing, deleting, checking, tapping the board, bundling (snap), breaking (crack), lifting a ten, landing a digit, sliding a number down, and taking blocks away (lower each time) all sound different.
 - **Play Mat:** free play with the blocks. Add cubes, bundle 10 into 1, break 1 into 10, and see that the number doesn't change.
 - Stars, stickers and confetti. Works on phones and tablets, installable, and works offline (the device voice is used when the Cloudflare voice can't be reached).
 
@@ -43,6 +45,7 @@ npx wrangler dev  # local dev
 | `public/js/game.js` | One problem, step by step (and the auto-playing "Watch how") |
 | `public/js/board.js` | Colored lanes, blocks, and the animations: bundle ⬅, break ➡, merge, take away, flying digits, arrows |
 | `public/js/mat.js` | The Play Mat |
+| `public/js/sense.js`, `senseview.js` | Number Sense: number words, expanded form, question generator (tested) and its screen |
 | `public/js/app.js` | Home, levels, finish screen, grown-ups page |
 | `public/js/tts.js`, `api.js`, `sound.js`, `store.js` | Read-aloud voice, Worker API, sound effects, progress in localStorage |
 | `worker/index.js` | Cloudflare Worker (`/api/health`, `/api/tts`) |

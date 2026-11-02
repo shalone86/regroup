@@ -264,12 +264,12 @@ export async function merge(fromTray, toTray, commit) {
 }
 
 /** One piece floats away (taking away). */
-export async function vanish(el) {
+export async function vanish(el, k = 0) {
   syncSizes(el);
   const r = plain(R(el));
   const g = ghostAt(el.cloneNode(), r);
   el.style.visibility = "hidden";
-  sfx.away();
+  sfx.away(k);
   await g.animate([
     { transform: "translate(0,0) rotate(0) scale(1)", opacity: 1 },
     { transform: "translate(0,-50px) rotate(25deg) scale(.5)", opacity: 0 },

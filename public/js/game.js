@@ -178,7 +178,7 @@ export class Game {
     const btn = this.els.dock.querySelector("[data-go]");
     if (tap && this.blocks) tap.classList.add("tappable");
     return this.input((done) => {
-      const go = () => { sfx.tap(); tap?.classList.remove("tappable"); if (tap) tap.onclick = null; this.dock(""); done(); };
+      const go = () => { sfx.click(); tap?.classList.remove("tappable"); if (tap) tap.onclick = null; this.dock(""); done(); };
       btn.onclick = go;
       if (tap && this.blocks) tap.onclick = go;
       if (this.auto) this.wait(1100).then(() => { btn.classList.add("pressed"); return this.wait(250); }).then(go, () => {});
@@ -191,7 +191,7 @@ export class Game {
     for (;;) {
       this.dock(`<div class="choices">${options.map((o, k) => `<button class="btn big choice" data-k="${k}">${o.label}</button>`).join("")}</div>`);
       const pick = await this.input((done) => {
-        this.els.dock.querySelectorAll("[data-k]").forEach((b) => { b.onclick = () => { sfx.tap(); done(options[+b.dataset.k].value); }; });
+        this.els.dock.querySelectorAll("[data-k]").forEach((b) => { b.onclick = () => { sfx.select(); done(options[+b.dataset.k].value); }; });
         if (this.auto) {
           const k = options.findIndex((o) => o.value === correct);
           this.wait(1300).then(() => { this.els.dock.querySelector(`[data-k="${k}"]`)?.classList.add("pressed"); return this.wait(300); })
@@ -246,7 +246,7 @@ export class Game {
       const later = () => { clearTimeout(timer); timer = setTimeout(check, 350); };
       const press = (n) => {
         clearTimeout(timer);
-        sfx.tap();
+        sfx.key(n);
         if (typed.length >= 2) typed = "";
         typed += n;
         show();
@@ -254,8 +254,8 @@ export class Game {
         if (typed.length >= len) later();
       };
       this.els.dock.querySelectorAll("[data-n]").forEach((b) => { b.onclick = () => press(b.dataset.n); });
-      this.els.dock.querySelector("[data-back]").onclick = () => { typed = typed.slice(0, -1); show(); };
-      this.els.dock.querySelector("[data-ok]").onclick = check;
+      this.els.dock.querySelector("[data-back]").onclick = () => { sfx.back(); typed = typed.slice(0, -1); show(); };
+      this.els.dock.querySelector("[data-ok]").onclick = () => { sfx.submit(); check(); };
       const onKey = (e) => {
         if (/^\d$/.test(e.key)) press(e.key);
         else if (e.key === "Backspace") { typed = typed.slice(0, -1); show(); }
@@ -270,7 +270,7 @@ export class Game {
             const k = this.els.dock.querySelector(`[data-n="${ch}"]`);
             k?.classList.add("pressed");
             typed += ch;
-            sfx.tap();
+            sfx.key(ch);
             show();
             await this.wait(450);
             k?.classList.remove("pressed");
@@ -298,7 +298,7 @@ export class Game {
         if (busy || left <= 0 || !el?.classList.contains("pc")) return;
         busy = true;
         left--;
-        await B.vanish(el);
+        await B.vanish(el, n - left);
         this.tray.a[i]--;
         this.paint();
         busy = false;
@@ -393,6 +393,7 @@ export class Game {
       this.q(i, ".ans").innerHTML = this.ans[i];
       await fly;
       this.carry[i + 1] = dg(1, i + 1, "carried");
+      sfx.land();
       B.pop(this.q(i + 1, ".carry"), 1.5);
     })();
     await Promise.all([blocks, numbers]);
@@ -473,6 +474,7 @@ export class Game {
     sfx.pop();
     const rod = [...this.q(k, ".ta").children].at(-1);
     rod?.classList.add("lifted");
+    sfx.lift();
 
     await this.say(`${v} − 1 = ${v - 1}. Now tap the ${name(i)} to move the ${one(k)} over ➡`);
     await this.tapOn([this.lane[i]], `Move it to the ${PLACES[i].Name} lane, the one on the right ➡`, [this.lane[k]]);
@@ -496,6 +498,7 @@ export class Game {
       this.carry[i] = [...String(this.work[i])].map((ch) => dg(ch, i, "fresh")).join("");
       this.q(i, ".carry").innerHTML = this.carry[i];
       this.q(i, ".top .d")?.classList.add("struck");
+      sfx.land();
       B.pop(this.q(i, ".carry"), 1.4);
     })();
     await Promise.all([blocks, numbers]);
@@ -508,7 +511,7 @@ export class Game {
     const src = this.srcCell(i);
     await this.say(msg);
     await this.tapOn([src, this.q(i, ".ans")], `Tap the ${value} at the top of the ${PLACES[i].Name} lane.`);
-    sfx.whoosh();
+    sfx.slide();
     await B.flyDigit(src, this.q(i, ".ans"), dg(value, i), "", { arc: 0, dur: 650 });
     this.ans[i] = dg(value, i, "fresh");
     this.paint();
