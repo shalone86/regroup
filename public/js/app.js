@@ -6,13 +6,13 @@ import { PLACES, WORLDS, OPS, STAGES, stageById, makeStage, exampleFor, starsFor
 import { Game } from "./game.js";
 import { viewMat } from "./mat.js";
 import * as B from "./board.js";
-import { speak, stop, browserVoices } from "./tts.js";
+import { speak, stop, browserVoices, preload } from "./tts.js";
 import { health } from "./api.js";
 import { sfx } from "./sound.js";
 import * as S from "./store.js";
 import { viewSense } from "./senseview.js";
 import { keepDockVisible } from "./dock.js";
-import { SENSE_LEVELS } from "./sense.js";
+import { SENSE_LEVELS, words } from "./sense.js";
 
 const app = document.getElementById("app");
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -349,3 +349,11 @@ document.addEventListener("click", (e) => {
 route();
 keepDockVisible();
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+
+// Warm the voice for the words said over and over (praise, the usual lines, number names).
+preload([
+  "Yes!", "That's right!", "You got it!", "Great!", "Correct!", "Awesome!", "Super trading!", "Great job!", "Wow!",
+  "You did it!", "Here's the answer.", "You did it! You got a new sticker!", "Now it's your turn!",
+  "Ten ones make one ten. It moves to the left!",
+  ...Array.from({ length: 21 }, (_, n) => words(n)),
+]);
