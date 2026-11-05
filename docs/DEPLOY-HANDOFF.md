@@ -7,7 +7,7 @@
 ## Context
 
 - The game is a static site in `public/` plus a tiny Worker in `worker/index.js` (config in `wrangler.jsonc`). There's no build step.
-- The Worker uses the **Workers AI** binding (`AI`) only for the read-aloud voice (`@cf/deepgram/aura-2-en`). The game works without it, using the device's voice.
+- The Worker uses the **Workers AI** binding (`AI`) only for the read-aloud voice (`@cf/deepgram/aura-2-en` for single words and numbers, `@cf/myshell-ai/melotts` for sentences). The game works without it, using the device's voice.
 - It's set up the same way as the owner's `articulation` (`articulate.shalonely.com`) and `hablar` (`hablar.shalonely.com`) apps, so use that Cloudflare account (ariyandhamma@gmail.com).
 
 ## Rules

@@ -24,7 +24,7 @@ npx wrangler login
 npx wrangler deploy            # → https://regroup.<you>.workers.dev
 ```
 
-- The game is static (`public/`). The Worker only adds a kid-friendly read-aloud voice: `@cf/deepgram/aura-2-en` (voice `thalia`) on Workers AI, cached at the edge. Most sentences repeat, so the free allowance is plenty.
+- The game is static (`public/`). The Worker only adds a kid-friendly read-aloud voice: Workers AI, cached at the edge: `@cf/deepgram/aura-2-en` (voice `thalia`) for single words and numbers, `@cf/myshell-ai/melotts` for sentences. Most sentences repeat, so the free allowance is plenty.
 - Without Workers AI (or on any static host), the game uses the device's own voice.
 - Live at **https://regroup.shalonely.com** (custom domain in `wrangler.jsonc`; also https://regroup.ariyandhamma.workers.dev).
 - Optional: `npx wrangler secret put APP_PASSCODE` locks the voice API; enter the passcode under ⚙️ For grown-ups.
