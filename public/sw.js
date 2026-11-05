@@ -1,7 +1,7 @@
 // Offline support (same strategy as articulation and Hablar): network first for the app so
 // updates show right away, cache first for fonts and voice clips. The game itself works offline.
 
-const VERSION = "v8";
+const VERSION = "v9";
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = "runtime-v1";
 
