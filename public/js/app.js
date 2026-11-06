@@ -13,6 +13,7 @@ import * as S from "./store.js";
 import { viewSense } from "./senseview.js";
 import { keepDockVisible } from "./dock.js";
 import { SENSE_LEVELS, words } from "./sense.js";
+import { viewShow } from "./show.js";
 
 const app = document.getElementById("app");
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -39,6 +40,7 @@ const routes = [
   [/^watch\/([\w-]+)$/, viewWatch],
   [/^mat(?:\/(\d))?$/, (n) => viewMat(app, Number(n ?? 2))],
   [/^numbers$/, viewNumbers],
+  [/^show(?:\/(\d+))?$/, (n) => viewShow(app, n !== undefined ? Number(n) : 347)],
   [/^sense\/([\w-]+)$/, (id) => viewSense(app, id, { finish: finishSense })],
   [/^grownups$/, viewGrownups],
 ];
@@ -103,10 +105,16 @@ function viewHome() {
 
     ${senseSection()}
 
-    <a class="mat-card" href="#/mat/2">
-      <span class="mat-icon" aria-hidden="true"><span class="pc pc-1 mini"></span><span class="pc pc-0 mini"></span><span class="pc pc-0 mini"></span></span>
-      <span><b>Play Mat</b><br><span class="muted small">Build numbers with blocks. Bundle and break them yourself.</span></span>
-    </a>
+    <div class="row gap-md wrap mt-3">
+      <a class="mat-card" href="#/mat/2" style="flex: 1 1 240px; margin-top: 0;">
+        <span class="mat-icon" aria-hidden="true"><span class="pc pc-1 mini"></span><span class="pc pc-0 mini"></span><span class="pc pc-0 mini"></span></span>
+        <span><b>Play Mat</b><br><span class="muted small">Build numbers with blocks. Bundle and break them yourself.</span></span>
+      </a>
+      <a class="mat-card" href="#/show" style="flex: 1 1 240px; margin-top: 0;">
+        <span class="mat-icon" aria-hidden="true" style="font-size: 1.8rem; display: flex; align-items: center; justify-content: center;">🔢</span>
+        <span><b>Big Number Board</b><br><span class="muted small">Type any number to show standard, expanded & word forms big.</span></span>
+      </a>
+    </div>
 
     <section class="sticker-book">
       <h2>My stickers <small>${S.solved()} problems solved</small></h2>
@@ -138,6 +146,9 @@ function senseSection() {
 function viewNumbers() {
   app.innerHTML = `<h1>Number Sense</h1>
     <p class="muted">8 questions a round: read the blocks, match standard form, expanded form and number words (both ways), and find what digit is in each place and how much it's worth.</p>
+    <div class="row mb-3">
+      <a class="btn primary" href="#/show">🔢 Open Big Number Board</a>
+    </div>
     ${senseSection()}`;
 }
 
