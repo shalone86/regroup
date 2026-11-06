@@ -17,6 +17,7 @@ const WORD_MODEL = "@cf/deepgram/aura-2-en";
 const TTS_VOICE_LIST = ["thalia", "helena", "luna", "asteria", "aurora", "iris", "cora", "delia", "harmonia", "apollo", "arcas", "orion"];
 const TTS_VOICES = new Set(TTS_VOICE_LIST);
 const MAX_TEXT = 300;
+const ORIGIN_TIMEOUT_MS = 2500; // fail fast if origin voice server is asleep or down, so kids don't wait
 
 export default {
   async fetch(request, env, ctx) {
