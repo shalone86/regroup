@@ -155,14 +155,20 @@ export function fits(p, d) {
   return true;
 }
 
-export function makeStage(stage, seed = Date.now()) {
+export function makeStage(stage, seed = Date.now(), avoidKeys = []) {
   const rand = seeded(seed);
+  const avoid = new Set(avoidKeys);
   const mixStart = Math.floor(rand() * 2);
   const out = [];
   for (let i = 0; i < PROBLEMS_PER_STAGE; i++) {
-    let p;
-    do p = makeProblem(stage, i, rand, mixStart);
-    while (out.some((q) => q.a === p.a && q.b === p.b));
+    let p, tries = 0;
+    do {
+      p = makeProblem(stage, i, rand, mixStart);
+      tries++;
+    } while (
+      out.some((q) => q.a === p.a && q.b === p.b) ||
+      (tries < 40 && avoid.has(`${p.op}:${p.a}:${p.b}`))
+    );
     out.push(p);
   }
   return out;

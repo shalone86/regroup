@@ -8,12 +8,13 @@ const DEFAULTS = {
     sounds: true, // pops, whooshes and dings
     blocks: true, // show the blocks under the numbers when a problem starts
     ttsSource: "auto", // auto | server | browser
-    voice: "thalia", // Workers AI (Deepgram Aura-2) English voice
+    voice: "helena", // Workers AI (Deepgram Aura-2) English voice
     browserVoice: "",
     slow: false,
     passcode: "",
   },
   stages: {}, // id → { plays, done, stars, at }
+  seen: {}, // id → array of recently seen problem keys ("op:a:b")
   stickers: [], // emoji earned, newest last
   solved: 0,
 };
@@ -23,7 +24,11 @@ let state = load();
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY) ?? "null");
-    if (s) return { ...structuredClone(DEFAULTS), ...s, settings: { ...DEFAULTS.settings, ...s.settings } };
+    if (s) {
+      if (!s.settings?.voiceV2 && s.settings?.voice === "thalia") delete s.settings.voice;
+      if (s.settings) s.settings.voiceV2 = true;
+      return { ...structuredClone(DEFAULTS), ...s, settings: { ...DEFAULTS.settings, ...s.settings } };
+    }
   } catch { /* private mode or corrupted: start fresh */ }
   return structuredClone(DEFAULTS);
 }
@@ -36,6 +41,13 @@ export const settings = () => state.settings;
 export function setSetting(k, v) { state.settings[k] = v; save(); }
 
 export const stageProgress = (id) => state.stages[id] ?? { plays: 0, done: 0, stars: 0 };
+export const seenProblems = (id) => state.seen?.[id] ?? [];
+export function rememberProblems(id, keys) {
+  state.seen ??= {};
+  const prev = state.seen[id] ?? [];
+  state.seen[id] = [...prev, ...keys].slice(-25);
+  save();
+}
 export const stickers = () => state.stickers;
 export const solved = () => state.solved;
 

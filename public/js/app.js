@@ -219,7 +219,8 @@ function viewPlay(id) {
   let game = null;
   let alive = true;
   const blocksOn = wireToggles(shell, () => game);
-  const problems = makeStage(stage, Date.now());
+  const problems = makeStage(stage, Date.now(), S.seenProblems(stage.id));
+  S.rememberProblems(stage.id, problems.map((p) => `${p.op}:${p.a}:${p.b}`));
   let mistakes = 0;
 
   (async () => {
@@ -319,6 +320,16 @@ async function viewGrownups() {
         ${toggle("blocks", "Start with blocks showing", "Kids can always tap 🧱 to show or hide the blocks.")}
         <label class="set"><span><b>Voice</b><br><span class="muted small" data-voice-status>Checking…</span></span>
           <select data-k="ttsSource"><option value="auto">Best available</option><option value="server">Cloudflare voice</option><option value="browser">This device's voice</option></select></label>
+        <label class="set"><span><b>Cloudflare Voice Character</b><br><span class="muted small">Aura-2 Neural Voice (Helena is warm & clear)</span></span>
+          <select data-k="voice">
+            <option value="helena">Helena (Warm & Natural)</option>
+            <option value="thalia">Thalia (Clear & Bright)</option>
+            <option value="luna">Luna (Gentle & Calm)</option>
+            <option value="asteria">Asteria (Lively)</option>
+            <option value="aurora">Aurora (Expressive)</option>
+            <option value="apollo">Apollo (Friendly)</option>
+            <option value="orion">Orion (Deep)</option>
+          </select></label>
         <label class="set"><span><b>Passcode</b><br><span class="muted small">Only if you set APP_PASSCODE on the Worker.</span></span><input type="password" data-k="passcode" value="${esc(s.passcode)}" autocomplete="off"></label>
         <div class="row"><button class="btn small" data-test>🔊 Test the voice</button><button class="btn small danger" data-reset>Reset progress</button></div>
       </div>
@@ -334,6 +345,8 @@ async function viewGrownups() {
       </div>
     </section>`;
   app.querySelector('[data-k="ttsSource"]').value = s.ttsSource;
+  const voiceSelect = app.querySelector('[data-k="voice"]');
+  if (voiceSelect && s.voice) voiceSelect.value = s.voice;
   app.querySelectorAll("[data-k]").forEach((el) => {
     el.onchange = () => S.setSetting(el.dataset.k, el.type === "checkbox" ? el.checked : el.value);
   });
