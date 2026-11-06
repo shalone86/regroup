@@ -27,7 +27,7 @@ npx wrangler deploy            # → https://regroup.<you>.workers.dev
 - The game is static (`public/`). The Worker only adds a kid-friendly read-aloud voice: Workers AI, cached at the edge: `@cf/deepgram/aura-2-en` (voice `thalia`) for single words and numbers, `@cf/myshell-ai/melotts` for sentences. Most sentences repeat, so the free allowance is plenty.
 - Without Workers AI (or on any static host), the game uses the device's own voice.
 - Live at **https://regroup.shalonely.com** (custom domain in `wrangler.jsonc`; also https://regroup.ariyandhamma.workers.dev).
-- Optional: `npx wrangler secret put APP_PASSCODE` locks the voice API; enter the passcode under ⚙️ For grown-ups.
+- **Voice API Password (TODO):** An `APP_PASSCODE` secret can be set later to lock the voice API against public scraping. When ready, run `npx wrangler secret put APP_PASSCODE` and enter the same passcode in the app under **⚙️ For grown-ups**. (Deferred for now; currently relying on Cloudflare's free daily allowance and edge caching).
 
 Step-by-step handoff for an agent on the owner's machine: [docs/DEPLOY-HANDOFF.md](docs/DEPLOY-HANDOFF.md).
 

@@ -48,7 +48,8 @@ If `CLOUDFLARE_API_TOKEN` is set for another account, `unset CLOUDFLARE_API_TOKE
 npx wrangler deploy   # → https://regroup.<subdomain>.workers.dev
 ```
 
-Optional: `npx wrangler secret put APP_PASSCODE` (then enter it in the game under ⚙️ For grown-ups → Passcode).
+> **Note on Voice Passcode (TODO):** Setting `APP_PASSCODE` to lock the voice API is deferred for now and will be set later. When ready:
+> `npx wrangler secret put APP_PASSCODE` (then enter it in the game under ⚙️ For grown-ups → Passcode).
 
 ### 5. Optional: custom domain (ask the owner first)
 
