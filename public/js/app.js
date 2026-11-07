@@ -82,6 +82,9 @@ function viewHome() {
       <p class="lede">Trade <b class="c0">10 ones</b> for <b class="c1">1 ten</b>. It moves <b>left</b> ⬅<br>Break <b class="c1">1 ten</b> into <b class="c0">10 ones</b>. It moves <b>right</b> ➡</p>
       <a class="btn big primary play-btn" href="#/play/${next.id}">▶ Play</a>
       <p class="muted small">${nw.emoji} ${esc(nw.title)} · ${OPS[next.op].emoji} ${OPS[next.op].title}</p>
+      <nav class="grade-jump" aria-label="Jump to a grade">
+        ${WORLDS.map((w) => `<button type="button" class="grade-chip" data-grade="${w.n}">${w.emoji} Grade ${w.n}</button>`).join("")}
+      </nav>
     </section>
 
     <div class="legend" aria-label="Place value colors">
@@ -89,10 +92,10 @@ function viewHome() {
     </div>
 
     ${WORLDS.map((w) => `
-      <section class="world w${w.n}">
+      <section class="world w${w.n}" id="grade-${w.n}">
         <div class="world-head">
           <span class="world-emoji" aria-hidden="true">${w.emoji}</span>
-          <div><h2>${placeChips(w.places)} ${esc(w.title)}</h2><p class="muted small">${esc(w.blurb)}</p></div>
+          <div><h2>${placeChips(w.places)} Grade ${w.n}: ${esc(w.title)}</h2><p class="muted small">${esc(w.blurb)}</p></div>
         </div>
         <div class="stage-grid">
           ${STAGES.filter((s) => s.world === w.n).map((s) => {
@@ -122,6 +125,9 @@ function viewHome() {
       <h2>My stickers <small>${S.solved()} problems solved</small></h2>
       ${stickers.length ? `<div class="stickers">${stickers.map((s) => `<span>${s}</span>`).join("")}</div>` : `<p class="muted small">Finish a level to get your first sticker!</p>`}
     </section>`;
+  app.querySelectorAll("[data-grade]").forEach((btn) => {
+    btn.onclick = () => document.getElementById(`grade-${btn.dataset.grade}`)?.scrollIntoView({ behavior: "smooth" });
+  });
 }
 
 // ───────────────────────── number sense ─────────────────────────
