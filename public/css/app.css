@@ -188,7 +188,7 @@ body.in-game .topbar { display: none; }
 .board.places-3 { --lanes: 3; --u: 8.5px; --cube: 12px; --flat: 15px; }
 .board.places-4 { --lanes: 4; --u: 6.4px; --cube: 10px; --flat: 17px; --rowof: 3; }
 .board.mat { grid-template-columns: repeat(var(--lanes), minmax(0, 1fr)); }
-@media (min-width: 620px) {
+@media (min-width: 620px) and (min-height: 600px) {
   .board { --u: 16px; --cube: 20px; }
   .board.places-3 { --u: 11px; --cube: 16px; --flat: 26px; }
   .board.places-4 { --u: 8.6px; --cube: 13px; --flat: 24px; --rowof: 5; }
@@ -324,7 +324,7 @@ body.in-game .topbar { display: none; }
 .key.back { font-size: 1.3rem; }
 .dock[data-place="0"] { --kc: var(--c0-ink); } .dock[data-place="1"] { --kc: var(--c1-ink); }
 .dock[data-place="2"] { --kc: var(--c2-ink); } .dock[data-place="3"] { --kc: var(--c3-ink); }
-@media (min-width: 620px) { .pad { grid-template-columns: repeat(12, 1fr); max-width: 760px; } }
+@media (min-width: 620px) and (min-height: 600px) { .pad { grid-template-columns: repeat(12, 1fr); max-width: 760px; } }
 
 /* ── finish ── */
 .finish { text-align: center; padding-top: 40px; }
@@ -424,7 +424,7 @@ body.in-game .topbar { display: none; }
 .places-2 .tray.taking { --cube: 24px; --u: 15px; }
 .places-3 .tray.taking { --cube: 19px; --u: 10px; --flat: 22px; }
 .places-4 .tray.taking { --cube: 15px; --u: 8px; --flat: 21px; }
-@media (min-width: 620px) {
+@media (min-width: 620px) and (min-height: 600px) {
   .places-2 .tray.taking { --cube: 30px; --u: 18px; }
   .places-3 .tray.taking { --cube: 26px; --u: 13px; --flat: 32px; }
   .places-4 .tray.taking { --cube: 22px; --u: 11px; --flat: 30px; }
@@ -666,3 +666,73 @@ body.in-game .topbar { display: none; }
 .grade-chip:active { transform: translateY(3px); box-shadow: none; }
 #grade-1, #grade-2, #grade-3 { scroll-margin-top: 70px; }
 .tools-row { margin-top: 12px; }
+
+/* ───────── Small screens ───────── */
+
+/* Upright phones: a tighter board, and empty block boxes stop taking space. */
+@media (max-width: 480px) {
+  .play { padding-bottom: 150px; }
+  .play-top { padding: 4px 0; }
+  .bubble { min-height: 0; padding: 6px 8px 6px 10px; margin-bottom: 8px; }
+  .mascot { font-size: 1.8rem; }
+  .say { font-size: 1.02rem; }
+  .lh { height: 28px; font-size: .85rem; }
+  .cell { height: 40px; font-size: 1.9rem; }
+  .cell.carry { height: 26px; font-size: 1.2rem; }
+  .cell.ans { height: 46px; }
+  .trays { padding-top: 6px; }
+  .tray:empty { min-height: 30px; }
+  .tray-sep { font-size: 1rem; }
+  .key { height: 46px; font-size: 1.45rem; }
+  .pad { gap: 6px; }
+}
+
+/* Phones turned sideways: the controls move to a column on the right, so the board gets the
+   whole height; the top bar and bubble shrink. */
+@media (orientation: landscape) and (max-height: 520px) {
+  body.in-game main { max-width: none; padding: 4px 12px 12px; padding-right: 268px; }
+  .play { padding-bottom: 12px; }
+  .play-top { padding: 2px 0; }
+  .icon-btn { width: 36px; height: 36px; font-size: 1rem; border-radius: 11px; }
+  .dots i { width: 11px; height: 11px; }
+  .bubble { min-height: 0; padding: 4px 8px; margin-bottom: 6px; }
+  .mascot { font-size: 1.5rem; }
+  .say { font-size: .98rem; }
+  .board { --u: 7px; --cube: 11px; --flat: 16px; }
+  .board.places-3 { --u: 6px; --cube: 10px; --flat: 14px; }
+  .board.places-4 { --u: 5px; --cube: 9px; --flat: 13px; }
+  .lh { height: 24px; font-size: .8rem; }
+  .cell { height: 32px; font-size: 1.6rem; }
+  .cell.carry { height: 22px; font-size: 1.05rem; }
+  .cell.ans { height: 38px; border-top-width: 3px; }
+  .trays { padding-top: 4px; }
+  .tray { min-height: calc(var(--u) * 10 + 8px); }
+  .tray:empty { min-height: 26px; }
+  .dock {
+    left: auto; right: 0; top: 0; bottom: 0; width: 256px; justify-content: center; gap: 8px;
+    border-top: none; border-left: 2px solid var(--border); padding: 8px 10px;
+  }
+  .pad { grid-template-columns: repeat(4, 1fr); gap: 6px; max-width: none; }
+  .key { height: 44px; font-size: 1.35rem; }
+  .btn.big { font-size: 1.05rem; padding: 8px 14px; min-height: 46px; }
+  .choices { flex-direction: column; align-items: stretch; }
+  .lesson-card { padding: 10px 12px; }
+  .lesson-rule { font-size: 1rem; margin: 6px 0; }
+  .lesson-problem { font-size: 1.6rem; }
+  .lesson-step { font-size: .98rem; margin: 3px 0; }
+  .finish { padding-top: 8px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  /* The right column holds everything but the board: buttons on top, then the bubble, then the controls. */
+  .play-top { position: fixed; right: 0; top: 0; width: 256px; z-index: 31; padding: 6px 10px; background: transparent; }
+  .bubble { position: fixed; right: 0; top: 50px; width: 256px; z-index: 31; margin: 0; border-radius: 0; border-width: 0 0 2px 2px; box-shadow: none; }
+  .dock { justify-content: flex-end; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .dock::before { content: ""; position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) 96%, transparent); z-index: -1; }
+  .dock { background: var(--bg); }
+  /* Lesson card: rule on the left, example on the right. */
+  .lesson-card { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; align-items: start; }
+  .lesson-head { grid-column: 1 / -1; }
+  .lesson-rule { grid-column: 1; }
+  .lesson-example { grid-column: 2; grid-row: 2 / span 2; }
+  .lesson-actions { grid-column: 1; margin-top: 6px; justify-content: flex-start; }
+}
