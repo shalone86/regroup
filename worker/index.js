@@ -19,9 +19,14 @@ const TTS_VOICES = new Set(TTS_VOICE_LIST);
 const MAX_TEXT = 300;
 const ORIGIN_TIMEOUT_MS = 2500; // fail fast if origin voice server is asleep or down, so kids don't wait
 
+import { movedResponse } from "./moved.js";
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Old address (e.g. …shalonely.com): carry progress over to the new one.
+    const moved = movedResponse(url, env);
+    if (moved) return moved;
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
 
     if (env.APP_PASSCODE && request.headers.get("x-app-passcode") !== env.APP_PASSCODE) {
