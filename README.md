@@ -49,3 +49,23 @@ npx wrangler dev  # local dev
 | `public/js/app.js` | Home, levels, finish screen, grown-ups page |
 | `public/js/tts.js`, `api.js`, `sound.js`, `store.js` | Read-aloud voice, Worker API, sound effects, progress in localStorage |
 | `worker/index.js` | Cloudflare Worker (`/api/health`, `/api/tts`) |
+
+## Run your own copy
+
+This is open source (MIT). You don't need to code to use it, just visit [angelio.org/regroup/](https://angelio.org/regroup/).
+If you do code and want your own copy, or want to change it for your class:
+
+```bash
+git clone https://github.com/shalone86/regroup.git && cd regroup
+npm install
+npm test
+python3 -m http.server -d public 8787     # open http://localhost:8787 (uses the device's voice)
+npx wrangler deploy                       # optional: your own Cloudflare Worker with the nicer voice
+```
+
+Before deploying your own copy, change `"name"` in `wrangler.jsonc` and remove the `routes` and
+`vars` lines (those belong to angelio.org). Building a new app? Start from
+[shalone86/app-template](https://github.com/shalone86/app-template). Fixes and question corrections
+are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+The code is MIT licensed ([LICENSE](LICENSE)). The name "Angelio" and its logo are not part of the license.
