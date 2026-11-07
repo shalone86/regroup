@@ -8,6 +8,9 @@ import * as B from "./board.js";
 import { speak, stop } from "./tts.js";
 import { sfx } from "./sound.js";
 import * as S from "./store.js";
+import { showLesson } from "./lesson.js";
+import { senseIntro } from "./lessons.js";
+import { leadIn } from "./vary.js";
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
@@ -63,6 +66,7 @@ export function viewSense(app, id, { finish }) {
         <p class="say"></p>
         <button class="icon-btn replay" aria-label="Say it again">🔁</button>
       </div>
+      <div class="lesson-slot"></div>
       <div class="q-card"></div>
       <div class="q-choices"></div>
       <p class="q-explain" aria-live="polite"></p>
@@ -101,7 +105,7 @@ export function viewSense(app, id, { finish }) {
     const kind = q.choices[0].kind;
     $(".q-choices").className = `q-choices kind-${kind} n${q.choices.length}`;
     $(".q-choices").innerHTML = q.choices.map((c, j) => `<button class="choice-card" data-j="${j}">${choiceHtml(c, q.places)}</button>`).join("");
-    say(q.ask);
+    say(k === 0 ? q.ask : `${leadIn()} ${q.ask}`);
     let tries = 0;
     $(".q-choices").onclick = async (e) => {
       const btn = e.target.closest(".choice-card");
@@ -156,7 +160,14 @@ export function viewSense(app, id, { finish }) {
     return "Try again!";
   }
 
-  show();
+  // "How it works" card first, then the questions.
+  $(".q-card").hidden = true;
+  $(".say").textContent = "Here's how it works!";
+  showLesson($(".lesson-slot"), senseIntro(level)).then(() => {
+    if (!alive) return;
+    $(".q-card").hidden = false;
+    show();
+  });
   return () => { alive = false; stop(); };
 }
 

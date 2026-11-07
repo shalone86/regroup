@@ -11,6 +11,8 @@ import { health } from "./api.js";
 import { sfx } from "./sound.js";
 import * as S from "./store.js";
 import { viewSense } from "./senseview.js";
+import { showLesson } from "./lesson.js";
+import { introFor } from "./lessons.js";
 import { keepDockVisible } from "./dock.js";
 import { SENSE_LEVELS, words } from "./sense.js";
 import { viewShow } from "./show.js";
@@ -224,9 +226,13 @@ function viewPlay(id) {
   let mistakes = 0;
 
   (async () => {
+    // "How it works" card first (Listen / Skip / Start), like Grammar and Doubles.
+    shell.els.bubble.querySelector(".say").textContent = "Here's how it works!";
+    await showLesson(shell.els.board, introFor(stage));
+    if (!alive) return;
     for (let k = 0; k < problems.length && alive; k++) {
       app.querySelectorAll("[data-dot]").forEach((d) => d.classList.toggle("now", +d.dataset.dot === k));
-      game = new Game(problems[k], shell.els, { blocks: blocksOn() });
+      game = new Game(problems[k], shell.els, { blocks: blocksOn(), index: k });
       const res = await game.run();
       if (!res || !alive) return;
       mistakes += res.mistakes;

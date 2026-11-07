@@ -5,6 +5,7 @@ import { PLACES, OPS, count, digits, lengthOf, plan } from "./math.js";
 import * as B from "./board.js";
 import { speak, stop } from "./tts.js";
 import { sfx } from "./sound.js";
+import { vary, leadIn, praise, tryAgain } from "./vary.js";
 
 class Abort extends Error {}
 
@@ -37,6 +38,7 @@ export class Game {
     this.P = prob.places;
     this.els = els;
     this.auto = !!opts.auto;
+    this.index = opts.index ?? 0; // which problem of the level (0 = first)
     this.blocks = opts.blocks ?? true;
     this.mistakes = 0;
     this.dead = false;
@@ -78,7 +80,10 @@ export class Game {
   async run() {
     try {
       const { a, b, op } = this.p;
-      await this.say(op === "add" ? `Let's add ${a} + ${b}! Start with the ones.` : `Let's take away: ${a} − ${b}. Start with the ones.`);
+      // The first problem gets a plain intro; later ones start with a different lead-in each time.
+      const opener = this.index > 0 ? `${leadIn()} ` : "";
+      const startOnes = vary("start-ones", ["Start with the ones.", "We always start with the ones.", "Ones first!", "Let's start on the right, with the ones."]);
+      await this.say(op === "add" ? `${opener}${a} + ${b}. ${startOnes}` : `${opener}${a} − ${b}. ${startOnes}`);
       for (let i = 0; i < this.P; i++) {
         this.setActive(i);
         if (op === "add") await this.addColumn(i);
@@ -240,7 +245,7 @@ export class Game {
           finish(correct);
         } else {
           this.boardEl.classList.add("counts");
-          this.say(hint ?? `Not quite. Try again!`).catch(() => {});
+          this.say(hint ?? tryAgain()).catch(() => {});
         }
       };
       const later = () => { clearTimeout(timer); timer = setTimeout(check, 350); };
@@ -345,7 +350,7 @@ export class Game {
       return;
     }
     if (this.blocks && this.tray.b[i] > 0) {
-      await this.say(`${PLACES[i].Name} first. Push the ${name(i)} together!`);
+      await this.say(vary("push", [`Push the ${name(i)} together!`, `Slide the ${name(i)} together!`, `Put the ${name(i)} together!`, `Let's push the ${name(i)} together!`, `Squish the ${name(i)} together!`]));
       await this.action("🤲 Push together", { tap: this.q(i, ".trays") });
       await this.mergeCol(i);
     } else {
@@ -353,7 +358,7 @@ export class Game {
       this.tray.b[i] = 0;
       this.paint();
     }
-    await this.say(`How many ${name(i)}? ${terms.join(" + ")} = ?`);
+    await this.say(`${vary("how-many", [`How many ${name(i)}?`, `Count the ${name(i)}.`, `How many ${name(i)} now?`, `What do the ${name(i)} make?`])} ${terms.join(" + ")} = ?`);
     const v = await this.numberPad({
       correct: c.sum,
       alt: c.regroup ? c.digit : null,
@@ -372,7 +377,7 @@ export class Game {
       this.ans[i] = dgs(c.digit, i, "fresh");
       this.paint();
       B.pop(this.q(i, ".ans"));
-      await this.say(`Yes! ${count(c.sum, i)}.`, { wait: this.auto });
+      await this.say(`${praise()} ${count(c.sum, i)}.`, { wait: this.auto });
       if (!this.auto) await this.wait(700);
     }
   }
@@ -435,7 +440,7 @@ export class Game {
       return;
     }
     const enough = work >= bot;
-    await this.say(`We have ${count(work, i)}. Is that enough to take away ${bot}?`);
+    await this.say(vary("enough", [`We have ${count(work, i)}. Is that enough to take away ${bot}?`, `There are ${count(work, i)}. Can we take away ${bot}?`, `${count(work, i)}. Do we have enough to take away ${bot}?`]));
     await this.choice(
       [{ label: "✅ Yes, enough!", value: true }, { label: "🔁 No, trade!", value: false }],
       enough,
@@ -572,7 +577,7 @@ export class Game {
     sfx.win();
     B.confetti(40);
     this.dock("");
-    await this.say(`${a} ${OPS[op].sign} ${b} = <b class="answer">${total}</b> 🎉 ${pick(["Awesome!", "You did it!", "Super trading!", "Great job!", "Wow!"])}`, { wait: true });
+    await this.say(`${a} ${OPS[op].sign} ${b} = <b class="answer">${total}</b> 🎉 ${vary("done", ["Awesome!", "You did it!", "Super trading!", "Great job!", "Wow!", "You're a regrouping star!", "Fantastic!"])}`, { wait: true });
     return { mistakes: this.mistakes, total };
   }
 }
