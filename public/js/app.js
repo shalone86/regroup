@@ -16,12 +16,17 @@ import { introFor } from "./lessons.js";
 import { keepDockVisible } from "./dock.js";
 import { SENSE_LEVELS, words } from "./sense.js";
 import { viewShow } from "./show.js";
+import { jingleOnce } from "./jingle.js";
+import { vary } from "./vary.js";
+import { STICKER_WORLD } from "./stickers.js";
 
 const app = document.getElementById("app");
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ESC[c]);
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const STICKERS = ["🦄", "🚀", "🦖", "🌈", "🍕", "🐙", "⚽", "🎈", "🦋", "🍩", "🐢", "🌟", "🐝", "🍦", "🦕", "🐼", "🏆", "🎸", "🐬", "🍉"];
+const STICKERS = ["🦄", "🚀", "🦖", "🌈", "🐙", "🎈", "🦋", "🐢", "🌟", "🐝", "🦕", "🐼", "🐬", "🐶", "🐱", "🐴", "🐑", "🐸",
+  "🦉", "🐞", "🦊", "🐻", "🐧", "🐳", "🦒", "🐘", "🐰", "🦆", "🚂", "🚁", "⛵", "🚒", "🚜", "🎠", "🏰", "🏡", "⛪", "🌳", "🌻",
+  "🍄", "🌷", "⛲", "🧸", "🪁", "🍩", "🍦", "🍉", "🕊️", "👼", "🐟"];
 
 const starsHtml = (n) => `<span class="stars" aria-label="${n} of 3 stars">${"★".repeat(n)}<span class="off">${"★".repeat(3 - n)}</span></span>`;
 const placeChips = (places) => PLACES.slice(0, places).reverse().map((p, k) => `<span class="chipmini c${places - 1 - k}">${p.letter}</span>`).join("");
@@ -123,7 +128,8 @@ function viewHome() {
 
     <section class="sticker-book">
       <h2>My stickers <small>${S.solved()} problems solved</small></h2>
-      ${stickers.length ? `<div class="stickers">${stickers.map((s) => `<span>${s}</span>`).join("")}</div>` : `<p class="muted small">Finish a level to get your first sticker!</p>`}
+      ${stickers.length ? `<div class="stickers">${stickers.map((s) => `<span class="${s.big ? "big" : "mini"}">${s.e}</span>`).join("")}</div>
+        <a class="btn world-link" href="${STICKER_WORLD}">🌍 Play in Sticker World</a>` : `<p class="muted small">Finish a level to get your first sticker! No mistakes makes it a giant one.</p>`}
     </section>`;
   app.querySelectorAll("[data-grade]").forEach((btn) => {
     btn.onclick = () => document.getElementById(`grade-${btn.dataset.grade}`)?.scrollIntoView({ behavior: "smooth" });
@@ -243,7 +249,7 @@ function viewPlay(id) {
       if (!res || !alive) return;
       mistakes += res.mistakes;
       S.solvedOne();
-      app.querySelector(`[data-dot="${k}"]`)?.classList.add("done");
+      app.querySelector(`[data-dot="${k}"]`)?.classList.add(res.mistakes ? "assisted" : "done"); // yellow if it took a mistake
       await nextButton(shell.els.dock, k < problems.length - 1 ? "Next problem ▶" : "Finish 🏁");
       if (!alive) return;
       game.destroy();
@@ -277,21 +283,32 @@ function finishStage(stage, mistakes) {
 
 function showFinish({ id, stars, mistakes, title, done, again, next }) {
   document.body.classList.remove("in-game");
-  const sticker = S.finishStage(id, stars, pick(STICKERS));
+  const perfect = mistakes === 0;
+  const st = S.finishStage(id, stars, pick(STICKERS), perfect);
   sfx.fanfare();
-  B.confetti(90);
+  B.confetti(perfect ? 100 : 45);
+  const line = st.grew ? "Your sticker grew into a GIANT sticker!"
+    : st.isNew && st.big ? "A giant sticker! No mistakes at all!"
+    : st.isNew ? "A mini sticker! Play again with no mistakes to make it giant."
+    : st.big ? (perfect ? "No mistakes at all. Wow!" : done)
+    : perfect ? "" : "No mistakes next time, and your mini sticker grows giant!";
+  const label = st.grew ? "It grew! 🌟" : st.isNew ? (st.big ? "Giant sticker!" : "Mini sticker!") : st.big ? "Your giant sticker" : "Your mini sticker";
   app.innerHTML = `
     <section class="finish">
       <div class="big-stars">${starsHtml(stars)}</div>
-      <h1>${title}</h1>
-      ${sticker ? `<p class="new-sticker"><span>${sticker}</span><br>New sticker!</p>` : ""}
-      <p class="muted">${mistakes === 0 ? "No mistakes at all. Wow!" : done}</p>
+      <h1>${perfect ? vary("perfect", ["Perfect!", "No mistakes!", "Super star!"]) : title}</h1>
+      <p class="new-sticker ${st.big ? "big-sticker" : "mini-sticker"}${st.grew ? " grew" : ""}"><span>${st.e}</span><br>${label}</p>
+      ${line ? `<p class="muted">${esc(line)}</p>` : ""}
       <div class="row center">
-        <a class="btn big" href="${again}" data-again>🔁 Play again</a>
-        ${next ? `<a class="btn big primary" href="${next.href}">${next.label}</a>` : `<a class="btn big primary" href="#/">🏠 Home</a>`}
+        <a class="btn big${st.big ? "" : " primary"}" href="${again}" data-again>🔁 ${st.big ? "Play again" : "Try for giant!"}</a>
+        ${next ? `<a class="btn big${st.big ? " primary" : ""}" href="${next.href}">${next.label}</a>` : `<a class="btn big${st.big ? " primary" : ""}" href="#/">🏠 Home</a>`}
       </div>
+      <p><a class="btn world-link" href="${STICKER_WORLD}">🌍 Play in Sticker World</a></p>
     </section>`;
-  speak(sticker ? "You did it! You got a new sticker!" : "You did it!");
+  speak(st.grew ? "Wow! Your sticker grew into a giant sticker!"
+    : st.isNew && st.big ? vary("giant", ["You did it with no mistakes! You got a giant sticker!", "Perfect! Here's a giant sticker!"])
+    : st.isNew ? vary("mini", ["You did it! You got a mini sticker. Play again with no mistakes to make it giant!", "Nice work! Here's a mini sticker. No mistakes next time makes it giant!"])
+    : perfect ? "You did it! No mistakes!" : "You did it!");
   app.querySelector("[data-again]").onclick = (e) => { e.preventDefault(); route(); };
 }
 
@@ -382,6 +399,7 @@ document.addEventListener("click", (e) => {
 
 // ───────────────────────── start ─────────────────────────
 
+jingleOnce("regroup", () => S.settings().sounds); // the app's little logo sound, on the first tap
 route();
 keepDockVisible();
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});

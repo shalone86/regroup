@@ -186,4 +186,5 @@ export function exampleFor(stage) {
 }
 
 /** Stars for a finished stage of 5 problems, from the number of wrong answers. */
-export const starsFor = (mistakes) => (mistakes <= 1 ? 3 : mistakes <= 4 ? 2 : 1);
+// 3 stars only with no mistakes, matching the giant sticker (any mistake: a mini sticker and a yellow dot).
+export const starsFor = (mistakes) => (mistakes === 0 ? 3 : mistakes <= 3 ? 2 : 1);

@@ -1,7 +1,7 @@
 // Offline support (same strategy as articulation and Hablar): network first for the app so
 // updates show right away, cache first for fonts and voice clips. The game itself works offline.
 
-const VERSION = "v15";
+const VERSION = "v16";
 // Cache names start with the app id: several apps can share one site (angelio.org/regroup/, /snap/…),
 // and each must only clean up its own caches.
 const APP = "regroup";
@@ -10,7 +10,7 @@ const RUNTIME = `${APP}-runtime-v1`;
 
 const ASSETS = [
   "./", "index.html", "manifest.webmanifest", "icon.svg", "icons/icon-192.png", "icons/apple-touch-icon.png", "css/app.css",
-  "js/app.js", "js/api.js", "js/dock.js", "js/lesson.js", "js/lessons.js", "js/vary.js", "js/board.js", "js/game.js", "js/mat.js", "js/math.js", "js/sense.js", "js/senseview.js", "js/show.js", "js/sound.js", "js/store.js", "js/tts.js",
+  "js/app.js", "js/api.js", "js/dock.js", "js/lesson.js", "js/lessons.js", "js/vary.js", "js/stickers.js", "js/jingle.js", "js/board.js", "js/game.js", "js/mat.js", "js/math.js", "js/sense.js", "js/senseview.js", "js/show.js", "js/sound.js", "js/store.js", "js/tts.js",
 ];
 
 self.addEventListener("install", (e) => {

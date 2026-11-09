@@ -1,5 +1,7 @@
 // Settings and progress, kept in this browser's localStorage (same approach as articulation and Hablar).
 
+import { shareSticker } from "./stickers.js";
+
 const KEY = "regroup:v1";
 
 const DEFAULTS = {
@@ -48,23 +50,32 @@ export function rememberProblems(id, keys) {
   state.seen[id] = [...prev, ...keys].slice(-25);
   save();
 }
-export const stickers = () => state.stickers;
+/** Stickers as { e, big }. Older saves stored plain emoji (counted as giant). */
+export const stickers = () => state.stickers.map((s) => (typeof s === "string" ? { e: s, big: true } : { e: s.e ?? s.emoji, big: s.big ?? !s.mini, id: s.id }));
+
 export const solved = () => state.solved;
 
 export function solvedOne() { state.solved++; save(); }
 
 /** Record a finished stage. Keeps the best stars. Returns a new sticker, if one was earned. */
-export function finishStage(id, stars, sticker) {
+/**
+ * Record a finished level (keeps the best stars) and its sticker: one per level, giant with no
+ * mistakes, mini otherwise; a mini sticker grows when the level is perfect later.
+ * Returns { e, big, isNew, grew }.
+ */
+export function finishStage(id, stars, sticker, big = false) {
   const p = (state.stages[id] ??= { plays: 0, done: 0, stars: 0 });
-  const first = !p.done;
   p.plays++;
   p.done++;
   p.stars = Math.max(p.stars, stars);
   p.at = Date.now();
-  let earned = null;
-  if (sticker && (first || stars === 3)) { state.stickers.push(sticker); earned = sticker; }
+  let entry = state.stickers.find((s) => s && typeof s === "object" && s.id === id);
+  let isNew = false, grew = false;
+  if (!entry) { entry = { e: sticker, big: !!big, id }; state.stickers.push(entry); isNew = true; }
+  else if (big && !entry.big) { entry.big = true; grew = true; }
   save();
-  return earned;
+  shareSticker("regroup", id, entry.e, entry.big);
+  return { e: entry.e, big: entry.big, isNew, grew };
 }
 
 export function resetProgress() { state.stages = {}; state.stickers = []; state.solved = 0; save(); }

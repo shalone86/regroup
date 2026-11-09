@@ -114,6 +114,7 @@ export function viewSense(app, id, { finish }) {
       sfx.select();
       if (c.value === q.answer) return void correct(btn);
       tries++;
+      q.tries = tries;
       mistakes++;
       btn.disabled = true;
       btn.classList.add("wrong");
@@ -127,7 +128,7 @@ export function viewSense(app, id, { finish }) {
   }
 
   function correct(btn, shown = false) {
-    const q = round[k];
+    const q = round[k], tries = q.tries ?? 0;
     app.querySelectorAll(".choice-card").forEach((b) => { b.disabled = true; });
     btn.classList.add("right");
     if (!shown) { sfx.right(); B.confetti(18); } else sfx.land();
@@ -137,7 +138,7 @@ export function viewSense(app, id, { finish }) {
     $(".q-explain").textContent = text;
     const praise = shown ? "Here's the answer." : pick(["Yes!", "That's right!", "You got it!", "Great!", "Correct!"]);
     say(`${praise} ${text}`);
-    app.querySelector(`[data-dot="${k}"]`)?.classList.add("done");
+    app.querySelector(`[data-dot="${k}"]`)?.classList.add(tries > 0 ? "assisted" : "done"); // yellow if it took a mistake
     S.solvedOne();
     dock.innerHTML = `<button class="btn big primary pulse" data-next>${k < round.length - 1 ? "Next ▶" : "Finish 🏁"}</button>`;
     dock.querySelector("[data-next]").onclick = () => {
