@@ -26,7 +26,10 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ESC[c]);
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const STICKERS = ["🦄", "🚀", "🦖", "🌈", "🐙", "🎈", "🦋", "🐢", "🌟", "🐝", "🦕", "🐼", "🐬", "🐶", "🐱", "🐴", "🐑", "🐸",
   "🦉", "🐞", "🦊", "🐻", "🐧", "🐳", "🦒", "🐘", "🐰", "🦆", "🚂", "🚁", "⛵", "🚒", "🚜", "🎠", "🏰", "🏡", "⛪", "🌳", "🌻",
-  "🍄", "🌷", "⛲", "🧸", "🪁", "🍩", "🍦", "🍉", "🕊️", "👼", "🐟"];
+  "🍄", "🌷", "⛲", "🧸", "🪁", "🍩", "🍦", "🍉", "🕊️", "👼", "🐟",
+  // From our faith (about one sticker in four): church, cross, rosary, candle, praying hands, bread and
+  // grapes, the Lamb, a bell, a rose for Mary, the star of Bethlehem, the ox and donkey at the manger.
+  "⛪", "✝️", "📿", "🕯️", "🙏", "🍞", "🍇", "🐑", "🔔", "🌹", "🌟", "🐂", "🫏", "👼", "🕊️"];
 
 const starsHtml = (n) => `<span class="stars" aria-label="${n} of 3 stars">${"★".repeat(n)}<span class="off">${"★".repeat(3 - n)}</span></span>`;
 const placeChips = (places) => PLACES.slice(0, places).reverse().map((p, k) => `<span class="chipmini c${places - 1 - k}">${p.letter}</span>`).join("");

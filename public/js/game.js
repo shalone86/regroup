@@ -154,17 +154,30 @@ export class Game {
     this.boardEl.classList.toggle("no-blocks", !on);
   }
 
-  /** Show (and say) a message. In a lesson, wait until it's been said. */
+  /**
+   * Show (and say) a message. In "watch how" lessons, wait until it's been said.
+   * When playing, never hold the child up for the voice: an explanation (wait) gets a short beat on
+   * screen and is allowed to finish; the next line is spoken right after it. If the child moves on
+   * quickly, only the newest line is spoken, so the voice never falls behind the game.
+   */
   async say(html, { wait } = {}) {
     if (this.dead) throw new Abort();
     const p = this.els.bubble.querySelector(".say");
     p.innerHTML = html;
     B.pop(this.els.bubble, 1.03);
-    this.lastSaid = spoken(html);
-    const talking = speak(this.lastSaid);
-    if (this.auto || wait) {
-      await Promise.all([talking, this.wait(1400)]);
+    const text = (this.lastSaid = spoken(html));
+    if (this.auto) {
+      await Promise.all([speak(text), this.wait(1400)]);
       await this.wait(250);
+      return;
+    }
+    const token = (this.sayToken = (this.sayToken ?? 0) + 1);
+    const start = () => (token === this.sayToken && !this.dead ? speak(text) : undefined);
+    const talking = this.explaining ? this.explaining.then(start) : start();
+    if (wait) {
+      const mine = (this.explaining = Promise.resolve(talking).catch(() => {}));
+      mine.then(() => { if (this.explaining === mine) this.explaining = null; });
+      await this.wait(900);
     }
   }
 
