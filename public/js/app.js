@@ -29,7 +29,14 @@ const STICKERS = ["🦄", "🚀", "🦖", "🌈", "🐙", "🎈", "🦋", "🐢"
   "🍄", "🌷", "⛲", "🧸", "🪁", "🍩", "🍦", "🍉", "🕊️", "👼", "🐟",
   // From our faith (about one sticker in four): church, cross, rosary, candle, praying hands, bread and
   // grapes, the Lamb, a bell, a rose for Mary, the star of Bethlehem, the ox and donkey at the manger.
-  "⛪", "✝️", "📿", "🕯️", "🙏", "🍞", "🍇", "🐑", "🔔", "🌹", "🌟", "🐂", "🫏", "👼", "🕊️"];
+  "⛪", "✝️", "📿", "🕯️", "🙏", "🍞", "🍇", "🐑", "🔔", "🌹", "🌟", "🐂", "🫏", "👼", "🕊️",
+  // Our own drawings (emoji have no Mary, chalice or Sacred Heart): angelio.org/stickers/art/
+  "art:mary", "art:baby-jesus", "art:sacred-heart", "art:chalice", "art:monstrance", "art:bible", "art:lily"];
+const ART = { mary: "Mary", "baby-jesus": "Baby Jesus", "sacred-heart": "Sacred Heart", chalice: "Chalice", monstrance: "Monstrance", bible: "Holy Bible", lily: "Lily" };
+/** A sticker as HTML: an emoji, or one of our drawings ("art:mary"). */
+const stickerHtml = (e) => (String(e).startsWith("art:")
+  ? `<img class="art-sticker" src="https://angelio.org/stickers/art/${esc(e.slice(4))}.svg" alt="${esc(ART[e.slice(4)] ?? "sticker")}" draggable="false">`
+  : esc(e));
 
 const starsHtml = (n) => `<span class="stars" aria-label="${n} of 3 stars">${"★".repeat(n)}<span class="off">${"★".repeat(3 - n)}</span></span>`;
 const placeChips = (places) => PLACES.slice(0, places).reverse().map((p, k) => `<span class="chipmini c${places - 1 - k}">${p.letter}</span>`).join("");
@@ -131,7 +138,7 @@ function viewHome() {
 
     <section class="sticker-book">
       <h2>My stickers <small>${S.solved()} problems solved</small></h2>
-      ${stickers.length ? `<div class="stickers">${stickers.map((s) => `<span class="${s.big ? "big" : "mini"}">${s.e}</span>`).join("")}</div>
+      ${stickers.length ? `<div class="stickers">${stickers.map((s) => `<span class="${s.big ? "big" : "mini"}">${stickerHtml(s.e)}</span>`).join("")}</div>
         <a class="btn world-link" href="${STICKER_WORLD}">🌍 Play in Sticker World</a>` : `<p class="muted small">Finish a level to get your first sticker! No mistakes makes it a giant one.</p>`}
     </section>`;
   app.querySelectorAll("[data-grade]").forEach((btn) => {
@@ -300,7 +307,7 @@ function showFinish({ id, stars, mistakes, title, done, again, next }) {
     <section class="finish">
       <div class="big-stars">${starsHtml(stars)}</div>
       <h1>${perfect ? vary("perfect", ["Perfect!", "No mistakes!", "Super star!"]) : title}</h1>
-      <p class="new-sticker ${st.big ? "big-sticker" : "mini-sticker"}${st.grew ? " grew" : ""}"><span>${st.e}</span><br>${label}</p>
+      <p class="new-sticker ${st.big ? "big-sticker" : "mini-sticker"}${st.grew ? " grew" : ""}"><span>${stickerHtml(st.e)}</span><br>${label}</p>
       ${line ? `<p class="muted">${esc(line)}</p>` : ""}
       <div class="row center">
         <a class="btn big${st.big ? "" : " primary"}" href="${again}" data-again>🔁 ${st.big ? "Play again" : "Try for giant!"}</a>

@@ -745,3 +745,6 @@ body.in-game .topbar { display: none; }
   .lesson-example { grid-column: 2; grid-row: 2 / span 2; }
   .lesson-actions { grid-column: 1; margin-top: 6px; justify-content: flex-start; }
 }
+
+/* Our own drawn stickers size like emoji. */
+.art-sticker { width: 1em; height: 1em; vertical-align: -0.15em; display: inline-block; }
