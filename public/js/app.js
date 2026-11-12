@@ -142,8 +142,14 @@ function viewHome() {
         <a class="btn world-link" href="${STICKER_WORLD}">🌍 Play in Sticker World</a>` : `<p class="muted small">Finish a level to get your first sticker! No mistakes makes it a giant one.</p>`}
     </section>`;
   app.querySelectorAll("[data-grade]").forEach((btn) => {
-    btn.onclick = () => document.getElementById(`grade-${btn.dataset.grade}`)?.scrollIntoView({ behavior: "smooth" });
+    btn.onclick = () => {
+      S.setSetting("lastGrade", Number(btn.dataset.grade));
+      document.getElementById(`grade-${btn.dataset.grade}`)?.scrollIntoView({ behavior: "smooth" });
+    };
   });
+  // Back on Home: open at the grade they were last on (after the router's scroll to the top).
+  const lastG = Number(S.settings().lastGrade || 0);
+  if (lastG > 1) setTimeout(() => document.getElementById(`grade-${lastG}`)?.scrollIntoView({ behavior: "auto", block: "start" }), 0);
 }
 
 // ───────────────────────── number sense ─────────────────────────
@@ -239,6 +245,7 @@ function wireToggles(shell, getGame) {
 function viewPlay(id) {
   const stage = stageById(id);
   if (!stage) { location.hash = "#/"; return; }
+  S.setSetting("lastGrade", stage.world); // Home opens at this grade next time
   const shell = playShell(stage);
   let game = null;
   let alive = true;
