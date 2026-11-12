@@ -152,6 +152,7 @@ export class Game {
   setBlocks(on) {
     this.blocks = on;
     this.boardEl.classList.toggle("no-blocks", !on);
+    this.onBlocksToggle?.(on);
   }
 
   /**
@@ -310,45 +311,93 @@ export class Game {
   takeAway(i, n) {
     const tray = this.q(i, ".ta");
     const lane = this.lane[i];
-    let left = n;
-    const label = () => `Take away ${count(n, i)}. Tap ${left === n ? n : `${left} more`}!`;
+    const origCount = this.tray.a[i];
+    let removed = 0;
+    const label = () => `Take away ${count(n, i)}, then tap Done!`;
     this.els.bubble.querySelector(".say").innerHTML = label();
     speak(spoken(label()));
-    this.dock(`<p class="take-left" aria-live="polite"><b>${left}</b> to take away</p><button class="btn small ghosty" data-all>✋ Take them away for me</button>`);
+    const renderDock = () => {
+      this.dock(`<p class="take-left" aria-live="polite">Took away <b>${removed}</b></p>
+        <div class="row center" style="gap:8px;flex-wrap:wrap;">
+          <button class="btn small primary" data-done-take>✓ Done!</button>
+          <button class="btn small ghosty" data-all>✋ Take them away for me</button>
+        </div>`);
+    };
+    renderDock();
     tray.classList.add("tappable-each", "taking");
     lane.classList.add("tap-lane");
     return this.input((done) => {
       let busy = false;
-      const removeOne = async (el) => {
-        if (busy || left <= 0) return;
-        el = el?.classList.contains("pc") && !el.classList.contains("incoming") ? el : [...tray.children].at(-1);
-        if (!el) return;
-        busy = true;
-        left--;
-        const counter = this.els.dock.querySelector(".take-left b");
-        if (counter) { counter.textContent = left; B.pop(counter, 1.5); }
-        await B.vanish(el, n - left);
-        this.tray.a[i]--;
-        this.paint();
-        busy = false;
-        if (left > 0) this.els.bubble.querySelector(".say").innerHTML = label();
-        else {
-          tray.classList.remove("tappable-each", "taking");
-          lane.classList.remove("tap-lane");
-          lane.onclick = null;
-          this.dock("");
+      const cleanup = () => {
+        this.onBlocksToggle = null;
+        tray.classList.remove("tappable-each", "taking");
+        lane.classList.remove("tap-lane");
+        lane.onclick = null;
+        this.dock("");
+      };
+      this.onBlocksToggle = (on) => {
+        if (!on) {
+          this.tray.a[i] = Math.max(0, origCount - n);
+          this.paint();
+          cleanup();
           done();
         }
       };
+      const removeOne = async (el) => {
+        if (busy || this.tray.a[i] <= 0) return;
+        el = el?.classList.contains("pc") && !el.classList.contains("incoming") ? el : [...tray.children].at(-1);
+        if (!el) return;
+        busy = true;
+        removed++;
+        const counter = this.els.dock.querySelector(".take-left b");
+        if (counter) { counter.textContent = removed; B.pop(counter, 1.5); }
+        await B.vanish(el, removed);
+        this.tray.a[i]--;
+        this.paint();
+        busy = false;
+      };
+      const checkDone = () => {
+        if (busy) return;
+        if (removed === n) {
+          cleanup();
+          sfx.tap();
+          done();
+        } else {
+          this.mistakes++;
+          sfx.oops();
+          B.shake(lane);
+          const wrongRemoved = removed;
+          removed = 0;
+          this.tray.a[i] = origCount;
+          this.paint();
+          const counter = this.els.dock.querySelector(".take-left b");
+          if (counter) counter.textContent = "0";
+          const msg = `Oops! You took away ${wrongRemoved}, not ${n}. Count carefully and try again!`;
+          this.els.bubble.querySelector(".say").innerHTML = msg;
+          speak(msg);
+        }
+      };
       lane.onclick = (e) => removeOne(e.target.closest(".pc"));
+      const wireButtons = () => {
+        const doneBtn = this.els.dock.querySelector("[data-done-take]");
+        if (doneBtn) doneBtn.onclick = checkDone;
+        const allBtn = this.els.dock.querySelector("[data-all]");
+        if (allBtn) allBtn.onclick = all;
+      };
       const all = async () => {
         this.els.dock.querySelector("[data-all]")?.remove();
-        while (left > 0 && !this.dead) {
+        if (removed > n) {
+          removed = 0;
+          this.tray.a[i] = origCount;
+          this.paint();
+        }
+        while (removed < n && !this.dead) {
           await removeOne(null);
           await B.sleep(120);
         }
+        if (!this.dead) checkDone();
       };
-      this.els.dock.querySelector("[data-all]").onclick = all;
+      wireButtons();
       if (this.auto) this.wait(900).then(all, () => {});
     });
   }
@@ -559,24 +608,35 @@ export class Game {
    * (`wrongMsg`), except taps inside `ignore`. In a lesson, the game taps by itself.
    */
   tapOn(targets, wrongMsg = "", ignore = []) {
-    targets = targets.filter(Boolean);
-    targets.forEach((t) => t.classList.add("tap-here"));
+    const resolveTargets = () => {
+      const raw = targets.filter(Boolean);
+      if (this.blocks) return raw;
+      return raw.map((t) => (t.closest?.(".tray") ? t.closest(".lane") : t)).filter(Boolean);
+    };
+    let activeTargets = resolveTargets();
+    activeTargets.forEach((t) => t.classList.add("tap-here"));
     this.dock(`<p class="hint">👆 Tap on the board</p>`);
     return this.input((done) => {
       const cleanup = () => {
+        this.onBlocksToggle = null;
         this.boardEl.removeEventListener("click", onClick);
-        targets.forEach((t) => t.classList.remove("tap-here"));
+        activeTargets.forEach((t) => t.classList.remove("tap-here"));
         this.dock("");
       };
+      this.onBlocksToggle = () => {
+        activeTargets.forEach((t) => t.classList.remove("tap-here"));
+        activeTargets = resolveTargets();
+        activeTargets.forEach((t) => t.classList.add("tap-here"));
+      };
       const onClick = (e) => {
-        if (targets.some((t) => t.contains(e.target))) { cleanup(); sfx.tap(); done(); return; }
+        if (activeTargets.some((t) => t.contains(e.target))) { cleanup(); sfx.tap(); done(); return; }
         if (ignore.some((t) => t.contains(e.target))) return;
         if (wrongMsg && e.target.closest(".lane")) { sfx.oops(); this.say(wrongMsg).catch(() => {}); }
       };
       this.boardEl.addEventListener("click", onClick);
       if (this.auto) {
-        this.wait(1300).then(() => { targets[0].classList.add("pressed"); return this.wait(300); })
-          .then(() => { targets[0].classList.remove("pressed"); cleanup(); sfx.tap(); done(); }, () => {});
+        this.wait(1300).then(() => { activeTargets[0]?.classList.add("pressed"); return this.wait(300); })
+          .then(() => { activeTargets[0]?.classList.remove("pressed"); cleanup(); sfx.tap(); done(); }, () => {});
       }
     });
   }
