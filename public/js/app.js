@@ -31,8 +31,10 @@ const STICKERS = ["🦄", "🚀", "🦖", "🌈", "🐙", "🎈", "🦋", "🐢"
   // grapes, the Lamb, a bell, a rose for Mary, the star of Bethlehem, the ox and donkey at the manger.
   "⛪", "✝️", "📿", "🕯️", "🙏", "🍞", "🍇", "🐑", "🔔", "🌹", "🌟", "🐂", "🫏", "👼", "🕊️",
   // Our own drawings (emoji have no Mary, chalice or Sacred Heart): angelio.org/stickers/art/
-  "art:mary", "art:baby-jesus", "art:sacred-heart", "art:chalice", "art:monstrance", "art:bible", "art:lily"];
-const ART = { mary: "Mary", "baby-jesus": "Baby Jesus", "sacred-heart": "Sacred Heart", chalice: "Chalice", monstrance: "Monstrance", bible: "Holy Bible", lily: "Lily" };
+  "art:mary", "art:baby-jesus", "art:sacred-heart", "art:chalice", "art:monstrance", "art:bible", "art:lily",
+  "art:st-joseph", "art:st-francis", "art:guardian-angel", "art:holy-family", "art:rosary", "art:agnus-dei", "art:advent-wreath", "art:loaves-fishes"];
+const ART = { mary: "Mary", "baby-jesus": "Baby Jesus", "sacred-heart": "Sacred Heart", chalice: "Chalice", monstrance: "Monstrance", bible: "Holy Bible", lily: "Lily",
+  "st-joseph": "St. Joseph", "st-francis": "St. Francis", "guardian-angel": "Guardian angel", "holy-family": "The Holy Family", rosary: "Rosary", "agnus-dei": "Lamb of God", "advent-wreath": "Advent wreath", "loaves-fishes": "Loaves and fishes" };
 /** A sticker as HTML: an emoji, or one of our drawings ("art:mary"). */
 const stickerHtml = (e) => (String(e).startsWith("art:")
   ? `<img class="art-sticker" src="https://angelio.org/stickers/art/${esc(e.slice(4))}.svg" alt="${esc(ART[e.slice(4)] ?? "sticker")}" draggable="false">`
