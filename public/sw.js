@@ -1,7 +1,7 @@
 // Offline support (same strategy as articulation and Hablar): network first for the app so
 // updates show right away, cache first for fonts and voice clips. The game itself works offline.
 
-const VERSION = "v23";
+const VERSION = "v24";
 // Cache names start with the app id: several apps can share one site (angelio.org/regroup/, /snap/…),
 // and each must only clean up its own caches.
 const APP = "regroup";
